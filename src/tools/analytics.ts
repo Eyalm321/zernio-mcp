@@ -20,7 +20,7 @@ export const analyticsTools = [
       dateFrom?: string;
       dateTo?: string;
     }) => {
-      return zernioRequest("GET", "/v1/analytics/get-analytics", undefined, {
+      return zernioRequest("GET", "/v1/analytics", undefined, {
         accountId: args.accountId,
         postId: args.postId,
         platform: args.platform,
@@ -39,8 +39,8 @@ export const analyticsTools = [
       dateTo: z.string().optional().describe("End date (ISO format)"),
     }),
     handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
-      return zernioRequest("GET", "/v1/analytics/get-follower-stats", undefined, {
-        accountId: args.accountId,
+      return zernioRequest("GET", "/v1/accounts/follower-stats", undefined, {
+        accountIds: args.accountId,
         dateFrom: args.dateFrom,
         dateTo: args.dateTo,
       });
@@ -58,7 +58,7 @@ export const analyticsTools = [
         .describe("Platform to get best times for: facebook, instagram, tiktok, etc."),
     }),
     handler: async (args: { accountId: string; platform?: string }) => {
-      return zernioRequest("GET", "/v1/analytics/get-best-time-to-post", undefined, {
+      return zernioRequest("GET", "/v1/analytics/best-time", undefined, {
         accountId: args.accountId,
         platform: args.platform,
       });
@@ -80,7 +80,7 @@ export const analyticsTools = [
       dateTo?: string;
       platform?: string;
     }) => {
-      return zernioRequest("GET", "/v1/analytics/get-daily-metrics", undefined, {
+      return zernioRequest("GET", "/v1/analytics/daily-metrics", undefined, {
         accountId: args.accountId,
         dateFrom: args.dateFrom,
         dateTo: args.dateTo,
@@ -97,7 +97,7 @@ export const analyticsTools = [
       postId: z.string().optional().describe("Specific post ID to analyze"),
     }),
     handler: async (args: { accountId: string; postId?: string }) => {
-      return zernioRequest("GET", "/v1/analytics/get-content-decay", undefined, {
+      return zernioRequest("GET", "/v1/analytics/content-decay", undefined, {
         accountId: args.accountId,
         postId: args.postId,
       });
@@ -113,7 +113,7 @@ export const analyticsTools = [
       dateTo: z.string().optional().describe("End date (ISO format)"),
     }),
     handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
-      return zernioRequest("GET", "/v1/analytics/get-instagram-account-insights", undefined, {
+      return zernioRequest("GET", "/v1/analytics/instagram/account-insights", undefined, {
         accountId: args.accountId,
         dateFrom: args.dateFrom,
         dateTo: args.dateTo,
@@ -128,7 +128,7 @@ export const analyticsTools = [
       accountId: z.string().describe("The Zernio Instagram account ID"),
     }),
     handler: async (args: { accountId: string }) => {
-      return zernioRequest("GET", "/v1/analytics/get-instagram-demographics", undefined, {
+      return zernioRequest("GET", "/v1/analytics/instagram/demographics", undefined, {
         accountId: args.accountId,
       });
     },
@@ -145,7 +145,7 @@ export const analyticsTools = [
     handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
       return zernioRequest(
         "GET",
-        "/v1/analytics/get-google-business-performance",
+        "/v1/analytics/googlebusiness/performance",
         undefined,
         {
           accountId: args.accountId,
@@ -167,7 +167,7 @@ export const analyticsTools = [
     handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
       return zernioRequest(
         "GET",
-        "/v1/analytics/get-google-business-search-keywords",
+        "/v1/analytics/googlebusiness/search-keywords",
         undefined,
         {
           accountId: args.accountId,
@@ -187,7 +187,7 @@ export const analyticsTools = [
       dateTo: z.string().optional().describe("End date (ISO format)"),
     }),
     handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
-      return zernioRequest("GET", "/v1/analytics/get-youtube-daily-views", undefined, {
+      return zernioRequest("GET", "/v1/analytics/youtube/daily-views", undefined, {
         accountId: args.accountId,
         dateFrom: args.dateFrom,
         dateTo: args.dateTo,

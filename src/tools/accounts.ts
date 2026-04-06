@@ -32,7 +32,9 @@ export const accountTools = [
       accountId: z.string().describe("The Zernio account ID"),
     }),
     handler: async (args: { accountId: string }) => {
-      return zernioRequest("GET", `/v1/accounts/${args.accountId}/follower-stats`);
+      return zernioRequest("GET", `/v1/accounts/follower-stats`, undefined, {
+        accountIds: args.accountId,
+      });
     },
   },
 ];
