@@ -1,6 +1,6 @@
 {
   "name": "zernio-mcp",
-  "version": "1.3.3",
+  "version": "2.0.0",
   "description": "MCP server for Zernio — social media inbox, analytics, comments, messages and reviews",
   "main": "dist/index.js",
   "bin": {
