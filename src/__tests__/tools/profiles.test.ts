@@ -14,8 +14,8 @@ describe("profileTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 15 tools", () => {
-    expect(profileTools).toHaveLength(15);
+  it("exports 20 tools", () => {
+    expect(profileTools).toHaveLength(20);
   });
 
   it("has no duplicate tool names", () => {
@@ -167,6 +167,53 @@ describe("profileTools", () => {
     it("calls zernioRequest correctly", async () => {
       await tool.handler({ keyId: "key-1" });
       expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/api-keys/key-1");
+    });
+  });
+
+  describe("zernio_get_zernio_profile", () => {
+    const tool = profileTools.find((t) => t.name === "zernio_get_zernio_profile")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/profiles/prof-1");
+    });
+  });
+
+  describe("zernio_update_zernio_profile", () => {
+    const tool = profileTools.find((t) => t.name === "zernio_update_zernio_profile")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1", name: "Updated Brand", description: "New desc" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/profiles/prof-1", {
+        name: "Updated Brand", description: "New desc",
+      });
+    });
+  });
+
+  describe("zernio_delete_zernio_profile", () => {
+    const tool = profileTools.find((t) => t.name === "zernio_delete_zernio_profile")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/profiles/prof-1");
+    });
+  });
+
+  describe("zernio_get_user", () => {
+    const tool = profileTools.find((t) => t.name === "zernio_get_user")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ userId: "user-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/users/user-1");
+    });
+  });
+
+  describe("zernio_create_invite_token", () => {
+    const tool = profileTools.find((t) => t.name === "zernio_create_invite_token")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({} as any);
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/invite/tokens");
     });
   });
 });

@@ -149,4 +149,104 @@ export const adsTools = [
       return zernioRequest("GET", "/v1/ads/interests", undefined, { query: args.query });
     },
   },
+  {
+    name: "zernio_create_ad",
+    description: "Create a new ad with targeting, budget, and creative details.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID"),
+      adAccountId: z.string().describe("The ad account ID to create the ad under"),
+      name: z.string().describe("Ad name"),
+      goal: z.enum(["engagement", "traffic", "awareness", "video_views"]).describe("Ad goal/objective"),
+      budgetAmount: z.number().describe("Budget amount for the ad"),
+      budgetType: z.enum(["daily", "lifetime"]).describe("Whether the budget is daily or lifetime"),
+      currency: z.string().optional().describe("Currency code (e.g. USD, EUR)"),
+      headline: z.string().optional().describe("Ad headline text"),
+      body: z.string().optional().describe("Ad body/description text"),
+      callToAction: z.string().optional().describe("Call to action button text"),
+      linkUrl: z.string().optional().describe("Destination URL for the ad"),
+      imageUrl: z.string().optional().describe("Image URL for the ad creative"),
+      countries: z.array(z.string()).optional().describe("Target countries (ISO codes)"),
+      ageMin: z.number().optional().describe("Minimum target age"),
+      ageMax: z.number().optional().describe("Maximum target age"),
+      interests: z.array(z.string()).optional().describe("Interest targeting IDs"),
+      endDate: z.string().optional().describe("End date (ISO format)"),
+      audienceId: z.string().optional().describe("Custom audience ID to target"),
+    }),
+    handler: async (args: { accountId: string; adAccountId: string; name: string; goal: string; budgetAmount: number; budgetType: string; currency?: string; headline?: string; body?: string; callToAction?: string; linkUrl?: string; imageUrl?: string; countries?: string[]; ageMin?: number; ageMax?: number; interests?: string[]; endDate?: string; audienceId?: string }) => {
+      return zernioRequest("POST", "/v1/ads/create", {
+        accountId: args.accountId,
+        adAccountId: args.adAccountId,
+        name: args.name,
+        goal: args.goal,
+        budgetAmount: args.budgetAmount,
+        budgetType: args.budgetType,
+        currency: args.currency,
+        headline: args.headline,
+        body: args.body,
+        callToAction: args.callToAction,
+        linkUrl: args.linkUrl,
+        imageUrl: args.imageUrl,
+        countries: args.countries,
+        ageMin: args.ageMin,
+        ageMax: args.ageMax,
+        interests: args.interests,
+        endDate: args.endDate,
+        audienceId: args.audienceId,
+      });
+    },
+  },
+  {
+    name: "zernio_get_audience",
+    description: "Get details for a specific custom audience.",
+    inputSchema: z.object({
+      audienceId: z.string().describe("The audience ID"),
+    }),
+    handler: async (args: { audienceId: string }) => {
+      return zernioRequest("GET", `/v1/ads/audiences/${args.audienceId}`);
+    },
+  },
+  {
+    name: "zernio_delete_audience",
+    description: "Delete a custom audience.",
+    inputSchema: z.object({
+      audienceId: z.string().describe("The audience ID to delete"),
+    }),
+    handler: async (args: { audienceId: string }) => {
+      return zernioRequest("DELETE", `/v1/ads/audiences/${args.audienceId}`);
+    },
+  },
+  {
+    name: "zernio_add_audience_users",
+    description: "Add users to a custom audience for ad targeting.",
+    inputSchema: z.object({
+      audienceId: z.string().describe("The audience ID"),
+      users: z.array(z.any()).describe("Array of users to add to the audience"),
+    }),
+    handler: async (args: { audienceId: string; users: any[] }) => {
+      return zernioRequest("POST", `/v1/ads/audiences/${args.audienceId}/users`, { users: args.users });
+    },
+  },
+  {
+    name: "zernio_update_ad",
+    description: "Update an existing ad's status, budget, or name.",
+    inputSchema: z.object({
+      adId: z.string().describe("The ad ID to update"),
+      status: z.string().optional().describe("New status for the ad"),
+      budget: z.number().optional().describe("New budget amount"),
+      name: z.string().optional().describe("New ad name"),
+    }),
+    handler: async (args: { adId: string; status?: string; budget?: number; name?: string }) => {
+      return zernioRequest("PUT", `/v1/ads/${args.adId}`, { status: args.status, budget: args.budget, name: args.name });
+    },
+  },
+  {
+    name: "zernio_delete_ad",
+    description: "Delete an ad.",
+    inputSchema: z.object({
+      adId: z.string().describe("The ad ID to delete"),
+    }),
+    handler: async (args: { adId: string }) => {
+      return zernioRequest("DELETE", `/v1/ads/${args.adId}`);
+    },
+  },
 ];

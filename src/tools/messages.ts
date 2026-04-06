@@ -110,4 +110,27 @@ export const messageTools = [
       return zernioRequest("PUT", `/v1/inbox/conversations/${args.conversationId}`, { status: args.status });
     },
   },
+  {
+    name: "zernio_edit_message",
+    description: "Edit a message in a conversation.",
+    inputSchema: z.object({
+      conversationId: z.string().describe("The conversation ID"),
+      messageId: z.string().describe("The message ID to edit"),
+      message: z.string().describe("The updated message text"),
+    }),
+    handler: async (args: { conversationId: string; messageId: string; message: string }) => {
+      return zernioRequest("PATCH", `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}`, { message: args.message });
+    },
+  },
+  {
+    name: "zernio_delete_message",
+    description: "Delete a message from a conversation.",
+    inputSchema: z.object({
+      conversationId: z.string().describe("The conversation ID"),
+      messageId: z.string().describe("The message ID to delete"),
+    }),
+    handler: async (args: { conversationId: string; messageId: string }) => {
+      return zernioRequest("DELETE", `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}`);
+    },
+  },
 ];

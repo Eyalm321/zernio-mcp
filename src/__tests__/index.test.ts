@@ -13,6 +13,9 @@ import { profileTools } from "../tools/profiles.js";
 import { socialTools } from "../tools/social.js";
 import { connectTools } from "../tools/connect.js";
 import { whatsappBusinessTools } from "../tools/whatsapp-business.js";
+import { queueTools } from "../tools/queue.js";
+import { redditTools } from "../tools/reddit.js";
+import { validationTools } from "../tools/validation.js";
 
 const allTools = [
   ...accountTools,
@@ -29,6 +32,9 @@ const allTools = [
   ...socialTools,
   ...connectTools,
   ...whatsappBusinessTools,
+  ...queueTools,
+  ...redditTools,
+  ...validationTools,
 ];
 
 describe("Tool Registration", () => {
@@ -62,6 +68,7 @@ describe("Tool Registration", () => {
       accountTools, commentTools, messageTools, reviewTools, analyticsTools,
       adsTools, contactTools, broadcastTools, automationTools, postTools,
       profileTools, socialTools, connectTools, whatsappBusinessTools,
+      queueTools, redditTools, validationTools,
     ];
     for (const mod of modules) {
       expect(Array.isArray(mod)).toBe(true);

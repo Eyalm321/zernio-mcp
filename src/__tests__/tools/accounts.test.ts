@@ -14,8 +14,8 @@ describe("accountTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 20 tools", () => {
-    expect(accountTools).toHaveLength(20);
+  it("exports 42 tools", () => {
+    expect(accountTools).toHaveLength(42);
   });
 
   it("has no duplicate tool names", () => {
@@ -498,6 +498,336 @@ describe("accountTools", () => {
     it("calls zernioRequest correctly", async () => {
       await tool.handler({ accountId: "acc-123" });
       expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/accounts/acc-123/instagram-ice-breakers");
+    });
+  });
+
+  // 21. zernio_update_account
+  describe("zernio_update_account", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_update_account")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", username: "newuser", displayName: "New Name" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123", { username: "newuser", displayName: "New Name" });
+    });
+  });
+
+  // 22. zernio_disconnect_account
+  describe("zernio_disconnect_account", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_disconnect_account")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/accounts/acc-123");
+    });
+  });
+
+  // 23. zernio_get_single_account_health
+  describe("zernio_get_single_account_health", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_single_account_health")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/health");
+    });
+  });
+
+  // 24. zernio_get_reddit_subreddits
+  describe("zernio_get_reddit_subreddits", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_reddit_subreddits")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/reddit-subreddits");
+    });
+  });
+
+  // 25. zernio_switch_linkedin_organization
+  describe("zernio_switch_linkedin_organization", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_switch_linkedin_organization")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", organizationId: "org-456" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/linkedin-organization", { organizationId: "org-456" });
+    });
+  });
+
+  // 26. zernio_set_default_pinterest_board
+  describe("zernio_set_default_pinterest_board", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_set_default_pinterest_board")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", boardId: "board-789" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/pinterest-boards", { boardId: "board-789" });
+    });
+  });
+
+  // 27. zernio_set_default_youtube_playlist
+  describe("zernio_set_default_youtube_playlist", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_set_default_youtube_playlist")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", playlistId: "pl-456" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/youtube-playlists", { playlistId: "pl-456" });
+    });
+  });
+
+  // 28. zernio_set_default_reddit_subreddit
+  describe("zernio_set_default_reddit_subreddit", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_set_default_reddit_subreddit")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", subreddit: "typescript" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/reddit-subreddits", { subreddit: "typescript" });
+    });
+  });
+
+  // 29. zernio_update_facebook_page
+  describe("zernio_update_facebook_page", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_update_facebook_page")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", settings: '{"name":"My Page"}' });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/facebook-page", { settings: '{"name":"My Page"}' });
+    });
+  });
+
+  // 30. zernio_get_gmb_reviews
+  describe("zernio_get_gmb_reviews", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_gmb_reviews")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", pageSize: "10", pageToken: "token-abc" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-reviews", undefined, { locationId: "loc-1", pageSize: "10", pageToken: "token-abc" });
+    });
+  });
+
+  // 31. zernio_get_gmb_food_menus
+  describe("zernio_get_gmb_food_menus", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_gmb_food_menus")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-food-menus", undefined, { locationId: "loc-1" });
+    });
+  });
+
+  // 32. zernio_update_gmb_food_menus
+  describe("zernio_update_gmb_food_menus", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_update_gmb_food_menus")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", menus: '{"items":[]}' });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/gmb-food-menus", { locationId: "loc-1", menus: '{"items":[]}' });
+    });
+  });
+
+  // 33. zernio_get_gmb_location_details
+  describe("zernio_get_gmb_location_details", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_gmb_location_details")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1" });
+    });
+  });
+
+  // 34. zernio_update_gmb_location_details
+  describe("zernio_update_gmb_location_details", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_update_gmb_location_details")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", name: "My Biz", address: "123 Main St", phone: "555-1234", hours: '{"mon":"9-5"}', website: "https://example.com", description: "A business" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/gmb-location-details", { locationId: "loc-1", name: "My Biz", address: "123 Main St", phone: "555-1234", hours: '{"mon":"9-5"}', website: "https://example.com", description: "A business" });
+    });
+  });
+
+  // 35. zernio_get_gmb_media
+  describe("zernio_get_gmb_media", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_gmb_media")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", pageSize: "5", pageToken: "tok-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-media", undefined, { locationId: "loc-1", pageSize: "5", pageToken: "tok-1" });
+    });
+  });
+
+  // 36. zernio_upload_gmb_media
+  describe("zernio_upload_gmb_media", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_upload_gmb_media")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", mediaUrl: "https://example.com/photo.jpg", category: "COVER" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/accounts/acc-123/gmb-media", { locationId: "loc-1", mediaUrl: "https://example.com/photo.jpg", category: "COVER" });
+    });
+  });
+
+  // 37. zernio_delete_gmb_media
+  describe("zernio_delete_gmb_media", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_delete_gmb_media")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", mediaId: "media-99" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/accounts/acc-123/gmb-media", { locationId: "loc-1", mediaId: "media-99" });
+    });
+  });
+
+  // 38. zernio_get_gmb_attributes
+  describe("zernio_get_gmb_attributes", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_gmb_attributes")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-attributes", undefined, { locationId: "loc-1" });
+    });
+  });
+
+  // 39. zernio_update_gmb_attributes
+  describe("zernio_update_gmb_attributes", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_update_gmb_attributes")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", attributes: '{"wifi":true}' });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/gmb-attributes", { locationId: "loc-1", attributes: '{"wifi":true}' });
+    });
+  });
+
+  // 40. zernio_get_gmb_place_actions
+  describe("zernio_get_gmb_place_actions", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_get_gmb_place_actions")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-place-actions", undefined, { locationId: "loc-1" });
+    });
+  });
+
+  // 41. zernio_create_gmb_place_action
+  describe("zernio_create_gmb_place_action", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_create_gmb_place_action")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", actionType: "ORDER", url: "https://order.example.com" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/accounts/acc-123/gmb-place-actions", { locationId: "loc-1", actionType: "ORDER", url: "https://order.example.com" });
+    });
+  });
+
+  // 42. zernio_delete_gmb_place_action
+  describe("zernio_delete_gmb_place_action", () => {
+    const tool = accountTools.find((t: any) => t.name === "zernio_delete_gmb_place_action")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", actionId: "action-55" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/accounts/acc-123/gmb-place-actions", { locationId: "loc-1", actionId: "action-55" });
     });
   });
 });

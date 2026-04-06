@@ -133,4 +133,19 @@ export const commentTools = [
       });
     },
   },
+  {
+    name: "zernio_unhide_comment",
+    description:
+      "Unhide a previously hidden comment to make it publicly visible again on a post.",
+    inputSchema: z.object({
+      postId: z.string().describe("The post ID the comment belongs to"),
+      commentId: z.string().describe("The comment ID to unhide"),
+      accountId: z.string().describe("The Zernio account ID"),
+    }),
+    handler: async (args: { postId: string; commentId: string; accountId: string }) => {
+      return zernioRequest("DELETE", `/v1/inbox/comments/${args.postId}/${args.commentId}/hide`, {
+        accountId: args.accountId,
+      });
+    },
+  },
 ];

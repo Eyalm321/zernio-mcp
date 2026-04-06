@@ -14,8 +14,8 @@ describe("connectTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 10 tools", () => {
-    expect(connectTools).toHaveLength(10);
+  it("exports 17 tools", () => {
+    expect(connectTools).toHaveLength(17);
   });
 
   it("has no duplicate tool names", () => {
@@ -212,6 +212,134 @@ describe("connectTools", () => {
         "POST",
         "/v1/connect/snapchat/select-profile",
         { profileId: "prof-1", snapchatProfileId: "snap-1" }
+      );
+    });
+  });
+
+  describe("zernio_get_pending_connection_data", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_get_pending_connection_data")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({} as any);
+      expect(mockRequest).toHaveBeenCalledWith(
+        "GET",
+        "/v1/connect/pending-data"
+      );
+    });
+  });
+
+  describe("zernio_list_google_business_locations_for_connect", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_list_google_business_locations_for_connect")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "GET",
+        "/v1/connect/googlebusiness/locations",
+        undefined,
+        { profileId: "prof-1" }
+      );
+    });
+  });
+
+  describe("zernio_select_google_business_location", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_select_google_business_location")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1", locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "POST",
+        "/v1/connect/googlebusiness/select-location",
+        { profileId: "prof-1", locationId: "loc-1" }
+      );
+    });
+  });
+
+  describe("zernio_list_linkedin_organizations_for_connect", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_list_linkedin_organizations_for_connect")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "GET",
+        "/v1/connect/linkedin/organizations",
+        undefined,
+        { profileId: "prof-1" }
+      );
+    });
+  });
+
+  describe("zernio_select_linkedin_organization", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_select_linkedin_organization")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1", organizationId: "org-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "POST",
+        "/v1/connect/linkedin/select-organization",
+        { profileId: "prof-1", organizationId: "org-1" }
+      );
+    });
+  });
+
+  describe("zernio_list_pinterest_boards_for_connect", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_list_pinterest_boards_for_connect")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "GET",
+        "/v1/connect/pinterest/select-board",
+        undefined,
+        { profileId: "prof-1" }
+      );
+    });
+  });
+
+  describe("zernio_select_pinterest_board", () => {
+    const tool = connectTools.find((t) => t.name === "zernio_select_pinterest_board")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ profileId: "prof-1", boardId: "board-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "POST",
+        "/v1/connect/pinterest/select-board",
+        { profileId: "prof-1", boardId: "board-1" }
       );
     });
   });

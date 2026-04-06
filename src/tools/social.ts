@@ -264,4 +264,122 @@ export const socialTools = [
       return zernioRequest("DELETE", `/v1/contacts/${args.contactId}/tags/${args.tag}`);
     },
   },
+  // Twitter unlike
+  {
+    name: "zernio_twitter_unlike",
+    description: "Unlike a tweet from a connected Twitter/X account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Twitter account ID"),
+      tweetId: z.string().describe("The tweet ID to unlike"),
+    }),
+    handler: async (args: { accountId: string; tweetId: string }) => {
+      return zernioRequest("DELETE", `/v1/twitter/like`, { accountId: args.accountId, tweetId: args.tweetId });
+    },
+  },
+  // Sequence management
+  {
+    name: "zernio_update_sequence",
+    description: "Update an existing message sequence's name or steps.",
+    inputSchema: z.object({
+      sequenceId: z.string().describe("The sequence ID to update"),
+      name: z.string().optional().describe("Updated sequence name"),
+      steps: z.array(z.object({
+        message: z.string().describe("Message content for this step"),
+        delayDays: z.number().describe("Days to wait after previous step before sending"),
+      })).optional().describe("Updated sequence steps"),
+    }),
+    handler: async (args: { sequenceId: string; name?: string; steps?: Array<{ message: string; delayDays: number }> }) => {
+      return zernioRequest("PATCH", `/v1/sequences/${args.sequenceId}`, { name: args.name, steps: args.steps });
+    },
+  },
+  {
+    name: "zernio_delete_sequence",
+    description: "Delete a message sequence.",
+    inputSchema: z.object({
+      sequenceId: z.string().describe("The sequence ID to delete"),
+    }),
+    handler: async (args: { sequenceId: string }) => {
+      return zernioRequest("DELETE", `/v1/sequences/${args.sequenceId}`);
+    },
+  },
+  {
+    name: "zernio_activate_sequence",
+    description: "Activate a paused message sequence to resume sending.",
+    inputSchema: z.object({
+      sequenceId: z.string().describe("The sequence ID to activate"),
+    }),
+    handler: async (args: { sequenceId: string }) => {
+      return zernioRequest("POST", `/v1/sequences/${args.sequenceId}/activate`);
+    },
+  },
+  {
+    name: "zernio_pause_sequence",
+    description: "Pause an active message sequence to stop sending.",
+    inputSchema: z.object({
+      sequenceId: z.string().describe("The sequence ID to pause"),
+    }),
+    handler: async (args: { sequenceId: string }) => {
+      return zernioRequest("POST", `/v1/sequences/${args.sequenceId}/pause`);
+    },
+  },
+  {
+    name: "zernio_list_sequence_enrollments",
+    description: "List all contacts enrolled in a specific message sequence.",
+    inputSchema: z.object({
+      sequenceId: z.string().describe("The sequence ID"),
+      limit: z.number().optional().describe("Max enrollments to return"),
+      offset: z.number().optional().describe("Number of enrollments to skip for pagination"),
+    }),
+    handler: async (args: { sequenceId: string; limit?: number; offset?: number }) => {
+      return zernioRequest("GET", `/v1/sequences/${args.sequenceId}/enrollments`, undefined, { limit: args.limit, offset: args.offset });
+    },
+  },
+  // Webhook management
+  {
+    name: "zernio_update_webhook",
+    description: "Update webhook settings such as URL, events, or secret.",
+    inputSchema: z.object({
+      url: z.string().optional().describe("Updated webhook URL"),
+      events: z.array(z.string()).optional().describe("Updated list of event types to subscribe to"),
+      secret: z.string().optional().describe("Updated secret key for signature verification"),
+    }),
+    handler: async (args: { url?: string; events?: string[]; secret?: string }) => {
+      return zernioRequest("PUT", "/v1/webhooks/settings", { url: args.url, events: args.events, secret: args.secret });
+    },
+  },
+  {
+    name: "zernio_test_webhook",
+    description: "Send a test event to your webhook endpoint to verify it is working.",
+    inputSchema: z.object({
+      events: z.array(z.string()).describe("Event types to send as test (e.g. 'message.received')"),
+    }),
+    handler: async (args: { events: string[] }) => {
+      return zernioRequest("POST", "/v1/webhooks/test", { events: args.events });
+    },
+  },
+  {
+    name: "zernio_get_webhook_logs",
+    description: "Get delivery logs for webhooks -- see which events were sent and their response status.",
+    inputSchema: z.object({
+      limit: z.number().optional().describe("Max log entries to return"),
+      offset: z.number().optional().describe("Number of entries to skip for pagination"),
+      status: z.string().optional().describe("Filter by delivery status"),
+    }),
+    handler: async (args: { limit?: number; offset?: number; status?: string }) => {
+      return zernioRequest("GET", "/v1/webhooks/logs", undefined, { limit: args.limit, offset: args.offset, status: args.status });
+    },
+  },
+  // Connection logs
+  {
+    name: "zernio_get_connection_logs",
+    description: "Get logs for social account connections and disconnections.",
+    inputSchema: z.object({
+      limit: z.number().optional().describe("Max log entries to return"),
+      offset: z.number().optional().describe("Number of entries to skip for pagination"),
+      since: z.string().optional().describe("Start date filter (ISO format)"),
+    }),
+    handler: async (args: { limit?: number; offset?: number; since?: string }) => {
+      return zernioRequest("GET", "/v1/connections/logs", undefined, { limit: args.limit, offset: args.offset, since: args.since });
+    },
+  },
 ];

@@ -14,8 +14,8 @@ describe("messageTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 8 tools", () => {
-    expect(messageTools).toHaveLength(8);
+  it("exports 10 tools", () => {
+    expect(messageTools).toHaveLength(10);
   });
 
   it("has no duplicate tool names", () => {
@@ -191,6 +191,41 @@ describe("messageTools", () => {
         "PUT",
         "/v1/inbox/conversations/conv-123",
         { status: "read" }
+      );
+    });
+  });
+
+  describe("zernio_edit_message", () => {
+    const tool = messageTools.find((t) => t.name === "zernio_edit_message")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", message: "Updated text" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "PATCH",
+        "/v1/inbox/conversations/conv-123/messages/msg-1",
+        { message: "Updated text" }
+      );
+    });
+  });
+
+  describe("zernio_delete_message", () => {
+    const tool = messageTools.find((t) => t.name === "zernio_delete_message")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ conversationId: "conv-123", messageId: "msg-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "DELETE",
+        "/v1/inbox/conversations/conv-123/messages/msg-1"
       );
     });
   });

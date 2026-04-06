@@ -14,8 +14,8 @@ describe("postTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 18 tools", () => {
-    expect(postTools).toHaveLength(18);
+  it("exports 25 tools", () => {
+    expect(postTools).toHaveLength(25);
   });
 
   it("has no duplicate tool names", () => {
@@ -201,6 +201,81 @@ describe("postTools", () => {
       await tool.handler({ content: "Test post", platform: "instagram", mediaIds: ["m-1"] });
       expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/validate", {
         content: "Test post", platform: "instagram", mediaIds: ["m-1"],
+      });
+    });
+  });
+
+  describe("zernio_bulk_upload_posts", () => {
+    const tool = postTools.find((t) => t.name === "zernio_bulk_upload_posts")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      const posts = [
+        { accountIds: ["acc-1"], content: "Post 1", scheduledAt: "2024-12-01T10:00:00Z", mediaIds: undefined, tags: undefined },
+        { accountIds: ["acc-2"], content: "Post 2", scheduledAt: undefined, mediaIds: ["m-1"], tags: ["tag1"] },
+      ];
+      await tool.handler({ posts });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/bulk-upload", { posts });
+    });
+  });
+
+  describe("zernio_edit_published_post", () => {
+    const tool = postTools.find((t) => t.name === "zernio_edit_published_post")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ postId: "post-1", content: "Edited content", mediaIds: ["m-2"] });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/post-1/edit", {
+        content: "Edited content", mediaIds: ["m-2"],
+      });
+    });
+  });
+
+  describe("zernio_unpublish_post", () => {
+    const tool = postTools.find((t) => t.name === "zernio_unpublish_post")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ postId: "post-1" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/post-1/unpublish");
+    });
+  });
+
+  describe("zernio_update_post_metadata", () => {
+    const tool = postTools.find((t) => t.name === "zernio_update_post_metadata")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ postId: "post-1", tags: ["promo"], labels: ["important"] });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/post-1/update-metadata", {
+        tags: ["promo"], labels: ["important"],
+      });
+    });
+  });
+
+  describe("zernio_get_post_logs", () => {
+    const tool = postTools.find((t) => t.name === "zernio_get_post_logs")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ postId: "post-1", limit: 25 });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/posts/post-1/logs", undefined, { limit: 25 });
+    });
+  });
+
+  describe("zernio_get_publishing_logs", () => {
+    const tool = postTools.find((t) => t.name === "zernio_get_publishing_logs")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ since: "2024-01-01", until: "2024-12-31", limit: 50 });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/posts/logs", undefined, {
+        since: "2024-01-01", until: "2024-12-31", limit: 50,
+      });
+    });
+  });
+
+  describe("zernio_upload_media_direct", () => {
+    const tool = postTools.find((t) => t.name === "zernio_upload_media_direct")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-1", file: "base64data..." });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/media/upload-direct", {
+        accountId: "acc-1", file: "base64data...",
       });
     });
   });

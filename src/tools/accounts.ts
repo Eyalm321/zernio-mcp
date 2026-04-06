@@ -217,4 +217,262 @@ export const accountTools = [
       return zernioRequest("DELETE", `/v1/accounts/${args.accountId}/instagram-ice-breakers`);
     },
   },
+  {
+    name: "zernio_update_account",
+    description: "Update a connected social media account's username or display name.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID to update"),
+      username: z.string().optional().describe("Updated username for the account"),
+      displayName: z.string().optional().describe("Updated display name for the account"),
+    }),
+    handler: async (args: { accountId: string; username?: string; displayName?: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}`, { username: args.username, displayName: args.displayName });
+    },
+  },
+  {
+    name: "zernio_disconnect_account",
+    description: "Disconnect and remove a social media account from Zernio.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID to disconnect"),
+    }),
+    handler: async (args: { accountId: string }) => {
+      return zernioRequest("DELETE", `/v1/accounts/${args.accountId}`);
+    },
+  },
+  {
+    name: "zernio_get_single_account_health",
+    description: "Check the health/connection status of a specific social account by ID -- whether its auth token is still valid.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID to check"),
+    }),
+    handler: async (args: { accountId: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/health`);
+    },
+  },
+  {
+    name: "zernio_get_reddit_subreddits",
+    description: "Get subreddits available for a connected Reddit account -- needed for posting to subreddits.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Reddit account ID"),
+    }),
+    handler: async (args: { accountId: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/reddit-subreddits`);
+    },
+  },
+  {
+    name: "zernio_switch_linkedin_organization",
+    description: "Switch the active LinkedIn organization page for a connected LinkedIn account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio LinkedIn account ID"),
+      organizationId: z.string().describe("The LinkedIn organization ID to switch to"),
+    }),
+    handler: async (args: { accountId: string; organizationId: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/linkedin-organization`, { organizationId: args.organizationId });
+    },
+  },
+  {
+    name: "zernio_set_default_pinterest_board",
+    description: "Set the default Pinterest board for a connected Pinterest account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Pinterest account ID"),
+      boardId: z.string().describe("The Pinterest board ID to set as default"),
+    }),
+    handler: async (args: { accountId: string; boardId: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/pinterest-boards`, { boardId: args.boardId });
+    },
+  },
+  {
+    name: "zernio_set_default_youtube_playlist",
+    description: "Set the default YouTube playlist for a connected YouTube account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio YouTube account ID"),
+      playlistId: z.string().describe("The YouTube playlist ID to set as default"),
+    }),
+    handler: async (args: { accountId: string; playlistId: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/youtube-playlists`, { playlistId: args.playlistId });
+    },
+  },
+  {
+    name: "zernio_set_default_reddit_subreddit",
+    description: "Set the default subreddit for a connected Reddit account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Reddit account ID"),
+      subreddit: z.string().describe("The subreddit name to set as default (without r/)"),
+    }),
+    handler: async (args: { accountId: string; subreddit: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/reddit-subreddits`, { subreddit: args.subreddit });
+    },
+  },
+  {
+    name: "zernio_update_facebook_page",
+    description: "Update settings for the Facebook Page linked to a connected Facebook account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Facebook account ID"),
+      settings: z.string().describe("JSON string of Facebook Page settings to update"),
+    }),
+    handler: async (args: { accountId: string; settings: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/facebook-page`, { settings: args.settings });
+    },
+  },
+  {
+    name: "zernio_get_gmb_reviews",
+    description: "Get Google My Business reviews for a specific location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      pageSize: z.string().optional().describe("Number of reviews to return per page"),
+      pageToken: z.string().optional().describe("Pagination token for the next page of results"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; pageSize?: string; pageToken?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-reviews`, undefined, { locationId: args.locationId, pageSize: args.pageSize, pageToken: args.pageToken });
+    },
+  },
+  {
+    name: "zernio_get_gmb_food_menus",
+    description: "Get food menus for a Google My Business location (restaurants, cafes, etc.).",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+    }),
+    handler: async (args: { accountId: string; locationId: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-food-menus`, undefined, { locationId: args.locationId });
+    },
+  },
+  {
+    name: "zernio_update_gmb_food_menus",
+    description: "Update food menus for a Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      menus: z.string().describe("JSON string of menu data to update"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; menus: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/gmb-food-menus`, { locationId: args.locationId, menus: args.menus });
+    },
+  },
+  {
+    name: "zernio_get_gmb_location_details",
+    description: "Get detailed information for a specific Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+    }),
+    handler: async (args: { accountId: string; locationId: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-location-details`, undefined, { locationId: args.locationId });
+    },
+  },
+  {
+    name: "zernio_update_gmb_location_details",
+    description: "Update details for a Google My Business location (name, address, phone, hours, website, description).",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      name: z.string().optional().describe("Updated business name"),
+      address: z.string().optional().describe("Updated business address"),
+      phone: z.string().optional().describe("Updated phone number"),
+      hours: z.string().optional().describe("Updated business hours (JSON string)"),
+      website: z.string().optional().describe("Updated website URL"),
+      description: z.string().optional().describe("Updated business description"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; name?: string; address?: string; phone?: string; hours?: string; website?: string; description?: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/gmb-location-details`, { locationId: args.locationId, name: args.name, address: args.address, phone: args.phone, hours: args.hours, website: args.website, description: args.description });
+    },
+  },
+  {
+    name: "zernio_get_gmb_media",
+    description: "Get media (photos/videos) for a Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      pageSize: z.string().optional().describe("Number of media items to return per page"),
+      pageToken: z.string().optional().describe("Pagination token for the next page of results"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; pageSize?: string; pageToken?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-media`, undefined, { locationId: args.locationId, pageSize: args.pageSize, pageToken: args.pageToken });
+    },
+  },
+  {
+    name: "zernio_upload_gmb_media",
+    description: "Upload a photo or video to a Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      mediaUrl: z.string().describe("Public URL of the media file to upload"),
+      category: z.string().describe("Media category (e.g. 'COVER', 'PROFILE', 'ADDITIONAL', 'INTERIOR', 'EXTERIOR', 'FOOD_AND_DRINK')"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; mediaUrl: string; category: string }) => {
+      return zernioRequest("POST", `/v1/accounts/${args.accountId}/gmb-media`, { locationId: args.locationId, mediaUrl: args.mediaUrl, category: args.category });
+    },
+  },
+  {
+    name: "zernio_delete_gmb_media",
+    description: "Delete a media item from a Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      mediaId: z.string().describe("The media item ID to delete"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; mediaId: string }) => {
+      return zernioRequest("DELETE", `/v1/accounts/${args.accountId}/gmb-media`, { locationId: args.locationId, mediaId: args.mediaId });
+    },
+  },
+  {
+    name: "zernio_get_gmb_attributes",
+    description: "Get business attributes for a Google My Business location (amenities, accessibility, etc.).",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+    }),
+    handler: async (args: { accountId: string; locationId: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-attributes`, undefined, { locationId: args.locationId });
+    },
+  },
+  {
+    name: "zernio_update_gmb_attributes",
+    description: "Update business attributes for a Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      attributes: z.string().describe("JSON string of attributes to update"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; attributes: string }) => {
+      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/gmb-attributes`, { locationId: args.locationId, attributes: args.attributes });
+    },
+  },
+  {
+    name: "zernio_get_gmb_place_actions",
+    description: "Get place action links for a Google My Business location (order food, book appointment, etc.).",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+    }),
+    handler: async (args: { accountId: string; locationId: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-place-actions`, undefined, { locationId: args.locationId });
+    },
+  },
+  {
+    name: "zernio_create_gmb_place_action",
+    description: "Create a place action link for a Google My Business location (e.g. order food URL, booking URL).",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      actionType: z.string().describe("The action type (e.g. 'ORDER', 'BOOK', 'SHOP')"),
+      url: z.string().describe("The URL for the action link"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; actionType: string; url: string }) => {
+      return zernioRequest("POST", `/v1/accounts/${args.accountId}/gmb-place-actions`, { locationId: args.locationId, actionType: args.actionType, url: args.url });
+    },
+  },
+  {
+    name: "zernio_delete_gmb_place_action",
+    description: "Delete a place action link from a Google My Business location.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio Google Business account ID"),
+      locationId: z.string().describe("The GMB location ID"),
+      actionId: z.string().describe("The place action ID to delete"),
+    }),
+    handler: async (args: { accountId: string; locationId: string; actionId: string }) => {
+      return zernioRequest("DELETE", `/v1/accounts/${args.accountId}/gmb-place-actions`, { locationId: args.locationId, actionId: args.actionId });
+    },
+  },
 ];

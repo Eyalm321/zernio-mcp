@@ -152,4 +152,54 @@ export const profileTools = [
       return zernioRequest("DELETE", `/v1/api-keys/${args.keyId}`);
     },
   },
+  {
+    name: "zernio_get_zernio_profile",
+    description: "Get details for a specific Zernio profile by ID.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID"),
+    }),
+    handler: async (args: { profileId: string }) => {
+      return zernioRequest("GET", `/v1/profiles/${args.profileId}`);
+    },
+  },
+  {
+    name: "zernio_update_zernio_profile",
+    description: "Update an existing Zernio profile's name or description.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID to update"),
+      name: z.string().optional().describe("Updated profile name"),
+      description: z.string().optional().describe("Updated profile description"),
+    }),
+    handler: async (args: { profileId: string; name?: string; description?: string }) => {
+      return zernioRequest("PUT", `/v1/profiles/${args.profileId}`, { name: args.name, description: args.description });
+    },
+  },
+  {
+    name: "zernio_delete_zernio_profile",
+    description: "Delete a Zernio profile and disassociate its social accounts.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID to delete"),
+    }),
+    handler: async (args: { profileId: string }) => {
+      return zernioRequest("DELETE", `/v1/profiles/${args.profileId}`);
+    },
+  },
+  {
+    name: "zernio_get_user",
+    description: "Get details for a specific team member by user ID.",
+    inputSchema: z.object({
+      userId: z.string().describe("The user ID"),
+    }),
+    handler: async (args: { userId: string }) => {
+      return zernioRequest("GET", `/v1/users/${args.userId}`);
+    },
+  },
+  {
+    name: "zernio_create_invite_token",
+    description: "Create a reusable invite token for onboarding new team members.",
+    inputSchema: z.object({}),
+    handler: async (_args: Record<string, never>) => {
+      return zernioRequest("POST", "/v1/invite/tokens");
+    },
+  },
 ];

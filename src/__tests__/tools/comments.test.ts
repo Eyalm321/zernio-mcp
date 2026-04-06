@@ -14,8 +14,8 @@ describe("commentTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 7 tools", () => {
-    expect(commentTools).toHaveLength(7);
+  it("exports 8 tools", () => {
+    expect(commentTools).toHaveLength(8);
   });
 
   it("has no duplicate tool names", () => {
@@ -168,6 +168,24 @@ describe("commentTools", () => {
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
         "/v1/inbox/comments/c-5",
+        { accountId: "acc-1" }
+      );
+    });
+  });
+
+  describe("zernio_unhide_comment", () => {
+    const tool = commentTools.find((t) => t.name === "zernio_unhide_comment")!;
+
+    it("exists with correct name and description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ postId: "post-1", commentId: "c-6", accountId: "acc-1" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "DELETE",
+        "/v1/inbox/comments/post-1/c-6/hide",
         { accountId: "acc-1" }
       );
     });

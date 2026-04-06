@@ -124,4 +124,84 @@ export const connectTools = [
       });
     },
   },
+  {
+    name: "zernio_get_pending_connection_data",
+    description: "Get pending connection data from an in-progress OAuth flow.",
+    inputSchema: z.object({}),
+    handler: async (_args: Record<string, never>) => {
+      return zernioRequest("GET", "/v1/connect/pending-data");
+    },
+  },
+  {
+    name: "zernio_list_google_business_locations_for_connect",
+    description: "After starting Google Business OAuth, list available locations to choose which one to connect.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID from the OAuth flow"),
+    }),
+    handler: async (args: { profileId: string }) => {
+      return zernioRequest("GET", "/v1/connect/googlebusiness/locations", undefined, { profileId: args.profileId });
+    },
+  },
+  {
+    name: "zernio_select_google_business_location",
+    description: "Select a specific Google Business location to connect after the OAuth flow lists available locations.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID"),
+      locationId: z.string().describe("The Google Business location ID to connect"),
+    }),
+    handler: async (args: { profileId: string; locationId: string }) => {
+      return zernioRequest("POST", "/v1/connect/googlebusiness/select-location", {
+        profileId: args.profileId,
+        locationId: args.locationId,
+      });
+    },
+  },
+  {
+    name: "zernio_list_linkedin_organizations_for_connect",
+    description: "After starting LinkedIn OAuth, list available organizations to choose which one to connect.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID from the OAuth flow"),
+    }),
+    handler: async (args: { profileId: string }) => {
+      return zernioRequest("GET", "/v1/connect/linkedin/organizations", undefined, { profileId: args.profileId });
+    },
+  },
+  {
+    name: "zernio_select_linkedin_organization",
+    description: "Select a specific LinkedIn organization to connect after the OAuth flow lists available organizations.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID"),
+      organizationId: z.string().describe("The LinkedIn organization ID to connect"),
+    }),
+    handler: async (args: { profileId: string; organizationId: string }) => {
+      return zernioRequest("POST", "/v1/connect/linkedin/select-organization", {
+        profileId: args.profileId,
+        organizationId: args.organizationId,
+      });
+    },
+  },
+  {
+    name: "zernio_list_pinterest_boards_for_connect",
+    description: "After starting Pinterest OAuth, list available boards to choose which one to connect.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID from the OAuth flow"),
+    }),
+    handler: async (args: { profileId: string }) => {
+      return zernioRequest("GET", "/v1/connect/pinterest/select-board", undefined, { profileId: args.profileId });
+    },
+  },
+  {
+    name: "zernio_select_pinterest_board",
+    description: "Select a specific Pinterest board to connect after the OAuth flow lists available boards.",
+    inputSchema: z.object({
+      profileId: z.string().describe("The Zernio profile ID"),
+      boardId: z.string().describe("The Pinterest board ID to connect"),
+    }),
+    handler: async (args: { profileId: string; boardId: string }) => {
+      return zernioRequest("POST", "/v1/connect/pinterest/select-board", {
+        profileId: args.profileId,
+        boardId: args.boardId,
+      });
+    },
+  },
 ];
