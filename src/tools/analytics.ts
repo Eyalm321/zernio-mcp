@@ -183,12 +183,14 @@ export const analyticsTools = [
       "Get YouTube daily view counts, watch time, and subscriber changes.",
     inputSchema: z.object({
       accountId: z.string().describe("The Zernio YouTube account ID"),
+      videoId: z.string().describe("The YouTube video ID to get daily views for"),
       dateFrom: z.string().optional().describe("Start date (ISO format)"),
       dateTo: z.string().optional().describe("End date (ISO format)"),
     }),
-    handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
+    handler: async (args: { accountId: string; videoId: string; dateFrom?: string; dateTo?: string }) => {
       return zernioRequest("GET", "/v1/analytics/youtube/daily-views", undefined, {
         accountId: args.accountId,
+        videoId: args.videoId,
         dateFrom: args.dateFrom,
         dateTo: args.dateTo,
       });
