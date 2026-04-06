@@ -71,12 +71,43 @@ export const messageTools = [
       message: string;
       recipientId?: string;
     }) => {
-      return zernioRequest("POST", "/v1/inbox/messages", {
-        conversationId: args.conversationId,
+      const path = args.conversationId
+        ? `/v1/inbox/conversations/${args.conversationId}/messages`
+        : "/v1/inbox/conversations";
+      return zernioRequest("POST", path, {
         accountId: args.accountId,
         message: args.message,
         recipientId: args.recipientId,
       });
+    },
+  },
+  {
+    name: "zernio_send_typing_indicator",
+    description:
+      "Send a typing indicator in a conversation to show the user that you are composing a reply.",
+    inputSchema: z.object({
+      conversationId: z.string().describe("The conversation ID"),
+    }),
+    handler: async (args: { conversationId: string }) => {
+      return zernioRequest("POST", `/v1/inbox/conversations/${args.conversationId}/typing`);
+    },
+  },
+  {
+    name: "zernio_react_to_message",
+    description:
+      "Add or remove a reaction (emoji) to a message in a conversation.",
+    inputSchema: z.object({
+      conversationId: z.string().describe("The conversation ID"),
+      messageId: z.string().describe("The message ID to react to"),
+      emoji: z.string().describe("The emoji reaction to add (e.g. '❤️', '👍', '😂')"),
+      action: z.enum(["add", "remove"]).describe("Whether to add or remove the reaction"),
+    }),
+    handler: async (args: { conversationId: string; messageId: string; emoji: string; action: string }) => {
+      return zernioRequest(
+        args.action === "remove" ? "DELETE" : "POST",
+        `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}/reactions`,
+        { emoji: args.emoji }
+      );
     },
   },
   {

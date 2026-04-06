@@ -9,7 +9,7 @@ import { analyticsTools } from "./tools/analytics.js";
 
 const server = new McpServer({
   name: "zernio-mcp",
-  version: "1.0.0",
+  version: "1.1.0",
 });
 
 // Combine all tool modules

@@ -37,4 +37,20 @@ export const accountTools = [
       });
     },
   },
+  {
+    name: "zernio_get_linkedin_mentions",
+    description:
+      "Get LinkedIn mentions — posts and comments where your LinkedIn page was tagged or mentioned.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio LinkedIn account ID"),
+      dateFrom: z.string().optional().describe("Start date (ISO format)"),
+      dateTo: z.string().optional().describe("End date (ISO format)"),
+    }),
+    handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/linkedin-mentions`, undefined, {
+        dateFrom: args.dateFrom,
+        dateTo: args.dateTo,
+      });
+    },
+  },
 ];

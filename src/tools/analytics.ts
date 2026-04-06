@@ -196,4 +196,99 @@ export const analyticsTools = [
       });
     },
   },
+  {
+    name: "zernio_get_youtube_demographics",
+    description:
+      "Get YouTube audience demographics — age groups, gender split, and top countries of your viewers.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio YouTube account ID"),
+      dateFrom: z.string().optional().describe("Start date (ISO format)"),
+      dateTo: z.string().optional().describe("End date (ISO format)"),
+    }),
+    handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
+      return zernioRequest("GET", "/v1/analytics/youtube/demographics", undefined, {
+        accountId: args.accountId,
+        dateFrom: args.dateFrom,
+        dateTo: args.dateTo,
+      });
+    },
+  },
+  {
+    name: "zernio_get_linkedin_analytics",
+    description:
+      "Get LinkedIn account-level aggregate analytics — impressions, clicks, engagement rate, and follower growth.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio LinkedIn account ID"),
+      dateFrom: z.string().optional().describe("Start date (ISO format)"),
+      dateTo: z.string().optional().describe("End date (ISO format)"),
+    }),
+    handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/linkedin-aggregate-analytics`, undefined, {
+        dateFrom: args.dateFrom,
+        dateTo: args.dateTo,
+      });
+    },
+  },
+  {
+    name: "zernio_get_linkedin_post_analytics",
+    description:
+      "Get LinkedIn post-level analytics — impressions, clicks, likes, comments, shares, and engagement per post.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio LinkedIn account ID"),
+      dateFrom: z.string().optional().describe("Start date (ISO format)"),
+      dateTo: z.string().optional().describe("End date (ISO format)"),
+    }),
+    handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/linkedin-post-analytics`, undefined, {
+        dateFrom: args.dateFrom,
+        dateTo: args.dateTo,
+      });
+    },
+  },
+  {
+    name: "zernio_get_linkedin_post_reactions",
+    description:
+      "Get reactions breakdown for LinkedIn posts — like, celebrate, support, love, insightful, curious counts.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio LinkedIn account ID"),
+      postId: z.string().optional().describe("Specific post ID to get reactions for"),
+    }),
+    handler: async (args: { accountId: string; postId?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/linkedin-post-reactions`, undefined, {
+        postId: args.postId,
+      });
+    },
+  },
+  {
+    name: "zernio_get_post_timeline",
+    description:
+      "Get a post's performance over time as a timeline — see how metrics like impressions and engagement evolved hour by hour or day by day after publishing.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID"),
+      postId: z.string().describe("The post ID to get the timeline for"),
+    }),
+    handler: async (args: { accountId: string; postId: string }) => {
+      return zernioRequest("GET", "/v1/analytics/post-timeline", undefined, {
+        accountId: args.accountId,
+        postId: args.postId,
+      });
+    },
+  },
+  {
+    name: "zernio_get_posting_frequency",
+    description:
+      "Get posting frequency stats for an account — how often you post per day/week/month and how it correlates with engagement.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID"),
+      dateFrom: z.string().optional().describe("Start date (ISO format)"),
+      dateTo: z.string().optional().describe("End date (ISO format)"),
+    }),
+    handler: async (args: { accountId: string; dateFrom?: string; dateTo?: string }) => {
+      return zernioRequest("GET", "/v1/analytics/posting-frequency", undefined, {
+        accountId: args.accountId,
+        dateFrom: args.dateFrom,
+        dateTo: args.dateTo,
+      });
+    },
+  },
 ];
