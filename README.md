@@ -1,100 +1,39 @@
 # zernio-mcp
 
-A Model Context Protocol (MCP) server that gives Claude Desktop full access to your Zernio social media inbox, analytics, comments, DMs, and reviews — across Facebook, Instagram, TikTok, YouTube, Google Business, and more.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude full access to your [Zernio](https://zernio.com) social media accounts — inbox, analytics, comments, DMs, and reviews.
 
-## What You Can Do
+Zernio's official MCP only covers post scheduling. This server adds everything else: 27 tools covering your entire social media management workflow.
 
-Ask Claude things like:
+## Quick Start
 
-- "Show me the latest comments on my Instagram posts"
-- "Reply to the comment from @user123 saying thanks for your feedback!"
-- "List my unread DMs on Facebook"
-- "What are my follower stats this month on Instagram?"
-- "Show me all 1-star Google reviews in the last 30 days"
-- "Reply to that review with an apology and our contact info"
-- "What's the best time to post on TikTok?"
-- "How many impressions did my last 5 posts get?"
+### Option 1: npx (recommended)
 
-## Available Tools (27 total)
+No installation needed. Add this to your `claude_desktop_config.json`:
 
-### Accounts (2 tools)
-| Tool | Description |
-|------|-------------|
-| `zernio_list_accounts` | List all connected social accounts with platform, username, and IDs |
-| `zernio_get_follower_stats` | Get follower count and stats for an account |
+```json
+{
+  "mcpServers": {
+    "zernio": {
+      "command": "npx",
+      "args": ["zernio-mcp"],
+      "env": {
+        "ZERNIO_API_KEY": "your_zernio_api_key_here"
+      }
+    }
+  }
+}
+```
 
-### Comments (7 tools)
-| Tool | Description |
-|------|-------------|
-| `zernio_list_commented_posts` | List posts with comments across all platforms |
-| `zernio_get_post_comments` | Get the full comment thread on a specific post |
-| `zernio_reply_to_comment` | Reply to a comment publicly |
-| `zernio_private_reply_to_comment` | Send a private DM reply to a commenter |
-| `zernio_like_comment` | Like a comment |
-| `zernio_hide_comment` | Hide a comment from public view |
-| `zernio_delete_comment` | Permanently delete a comment |
-
-### Messages / DMs (5 tools)
-| Tool | Description |
-|------|-------------|
-| `zernio_list_conversations` | List all DM conversations |
-| `zernio_get_conversation` | Get details of a specific conversation |
-| `zernio_list_messages` | Read the messages in a conversation thread |
-| `zernio_send_message` | Send a DM or reply in a conversation |
-| `zernio_update_conversation_status` | Mark conversations read, unread, or archived |
-
-### Reviews (3 tools)
-| Tool | Description |
-|------|-------------|
-| `zernio_list_reviews` | List customer reviews (Google Business, etc.) |
-| `zernio_reply_to_review` | Reply to a customer review |
-| `zernio_delete_review_reply` | Delete your existing reply to a review |
-
-### Analytics (10 tools)
-| Tool | Description |
-|------|-------------|
-| `zernio_get_post_analytics` | Impressions, reach, likes, comments, shares for posts |
-| `zernio_get_follower_analytics` | Follower growth over time |
-| `zernio_get_best_times_to_post` | Optimal posting times based on your audience |
-| `zernio_get_daily_metrics` | Day-by-day account metrics |
-| `zernio_get_content_decay` | How post performance fades over time |
-| `zernio_get_instagram_insights` | Instagram reach, impressions, profile visits |
-| `zernio_get_instagram_demographics` | Instagram audience age, gender, location |
-| `zernio_get_google_business_performance` | GBP views, direction requests, calls |
-| `zernio_get_google_business_keywords` | Keywords people use to find your GBP |
-| `zernio_get_youtube_analytics` | YouTube daily views, watch time, subscribers |
-
----
-
-## Setup
-
-### 1. Prerequisites
-
-- [Node.js](https://nodejs.org/) v18 or later
-- A [Zernio](https://zernio.com) account with connected social media accounts
-- [Claude Desktop](https://claude.ai/download)
-
-### 2. Get Your Zernio API Key
-
-Go to [zernio.com/dashboard/api-keys](https://zernio.com/dashboard/api-keys) and create an API key.
-
-### 3. Install the MCP Server
+### Option 2: Local install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/zernio-mcp.git
+git clone https://github.com/Eyalm321/zernio-mcp.git
 cd zernio-mcp
 npm install
 npm run build
 ```
 
-### 4. Configure Claude Desktop
-
-Open your Claude Desktop config file:
-
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-Add the Zernio MCP server:
+Then configure Claude Desktop:
 
 ```json
 {
@@ -103,41 +42,124 @@ Add the Zernio MCP server:
       "command": "node",
       "args": ["/absolute/path/to/zernio-mcp/dist/index.js"],
       "env": {
-        "ZERNIO_API_KEY": "your_api_key_here"
+        "ZERNIO_API_KEY": "your_zernio_api_key_here"
       }
     }
   }
 }
 ```
 
-Replace `/absolute/path/to/zernio-mcp` with the actual path where you cloned the repo, and `your_api_key_here` with your Zernio API key.
+### Getting your API key
 
-### 5. Restart Claude Desktop
+1. Log in to [zernio.com](https://zernio.com)
+2. Go to **Settings → API Keys**
+3. Create a new key and copy it
 
-Close and reopen Claude Desktop. The Zernio tools will be available immediately.
+> **Required add-ons:** Enable the **Inbox** and **Analytics** add-ons in your Zernio plan to unlock all 27 tools.
 
 ---
 
-## Notes on Inbox Features
+## Tools
 
-Comments, messages, and reviews endpoints require the **Inbox add-on** in your Zernio plan. Check your plan at [zernio.com/dashboard](https://zernio.com/dashboard).
+### Accounts (2 tools)
+| Tool | Description |
+|------|-------------|
+| `zernio_list_accounts` | List all connected social accounts with platform, username, and follower count |
+| `zernio_get_follower_stats` | Get follower count and growth stats for a specific account |
 
-Analytics endpoints require the **Analytics add-on** (`hasAnalyticsAccess: true` on your accounts).
+### Comments (7 tools)
+| Tool | Description |
+|------|-------------|
+| `zernio_list_commented_posts` | List posts that have received comments |
+| `zernio_get_post_comments` | Get all comments on a specific post |
+| `zernio_reply_to_comment` | Reply publicly to a comment |
+| `zernio_private_reply_to_comment` | Send a private reply to a comment (Facebook/Instagram) |
+| `zernio_like_comment` | Like a comment |
+| `zernio_hide_comment` | Hide a comment from public view |
+| `zernio_delete_comment` | Delete a comment |
+
+### Messages / DMs (5 tools)
+| Tool | Description |
+|------|-------------|
+| `zernio_list_conversations` | List all DM conversations across platforms |
+| `zernio_get_conversation` | Get full message thread for a conversation |
+| `zernio_list_messages` | List messages with optional filters |
+| `zernio_send_message` | Send a DM reply to a conversation |
+| `zernio_update_conversation_status` | Mark conversations as read/unread/archived |
+
+### Reviews (3 tools)
+| Tool | Description |
+|------|-------------|
+| `zernio_list_reviews` | List reviews across connected review platforms |
+| `zernio_reply_to_review` | Reply to a review |
+| `zernio_delete_review_reply` | Delete a review reply |
+
+### Analytics (10 tools)
+| Tool | Description |
+|------|-------------|
+| `zernio_get_post_analytics` | Post-level metrics: impressions, reach, likes, comments, shares, saves, clicks |
+| `zernio_get_follower_analytics` | Follower growth over time for an account |
+| `zernio_get_best_times_to_post` | Optimal posting times based on your audience's engagement |
+| `zernio_get_daily_metrics` | Day-by-day impressions, reach, engagement, and profile visits |
+| `zernio_get_content_decay` | How post performance decays over time after publishing |
+| `zernio_get_instagram_insights` | Instagram-specific reach, impressions, and profile visits |
+| `zernio_get_instagram_demographics` | Instagram audience age, gender, and location breakdown |
+| `zernio_get_google_business_performance` | Google Business Profile views, calls, direction requests *(requires Google Business connected)* |
+| `zernio_get_google_business_keywords` | Search keywords people use to find your Google Business Profile *(requires Google Business connected)* |
+| `zernio_get_youtube_analytics` | YouTube daily view counts and watch time for a specific video *(requires YouTube connected)* |
+
+---
+
+## Example prompts
+
+Once configured, you can ask Claude things like:
+
+- *"What comments came in today across all my social accounts?"*
+- *"Reply to all unanswered DMs with a friendly acknowledgment"*
+- *"Show me the engagement stats for my last 5 Facebook posts"*
+- *"What's the best time to post on Instagram based on my audience?"*
+- *"Summarize all new reviews and draft replies for the 1-star ones"*
+- *"How have my follower counts changed over the past 30 days?"*
+
+---
+
+## Supported platforms
+
+Platforms depend on which accounts you've connected in Zernio:
+
+- Facebook
+- Instagram
+- TikTok
+- YouTube *(analytics only)*
+- Google Business Profile *(analytics and reviews)*
+- LinkedIn
+- Twitter/X
+- Threads
+
+---
+
+## Configuration reference
+
+| Config key | Description |
+|------------|-------------|
+| `ZERNIO_API_KEY` | Your Zernio API key (required) |
 
 ---
 
 ## Development
 
 ```bash
-# Run in development mode (no build step)
-ZERNIO_API_KEY=your_key npm run dev
-
-# Build for production
-npm run build
-
-# Run built server
-ZERNIO_API_KEY=your_key npm start
+npm install
+npm run build       # compile TypeScript
+npm start           # run the server
 ```
+
+Built with:
+- [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
+- [Zod](https://zod.dev) for schema validation
+- TypeScript / Node.js
+
+---
 
 ## License
 
