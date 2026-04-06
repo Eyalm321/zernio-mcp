@@ -6,39 +6,48 @@ import { commentTools } from "./tools/comments.js";
 import { messageTools } from "./tools/messages.js";
 import { reviewTools } from "./tools/reviews.js";
 import { analyticsTools } from "./tools/analytics.js";
+import { adsTools } from "./tools/ads.js";
+import { contactTools } from "./tools/contacts.js";
+import { broadcastTools } from "./tools/broadcasts.js";
+import { automationTools } from "./tools/automations.js";
+import { postTools } from "./tools/posts.js";
+import { profileTools } from "./tools/profiles.js";
+import { socialTools } from "./tools/social.js";
+import { connectTools } from "./tools/connect.js";
+import { whatsappBusinessTools } from "./tools/whatsapp-business.js";
 
 const server = new McpServer({
   name: "zernio-mcp",
-  version: "1.1.0",
+  version: "1.3.3",
 });
 
-// Combine all tool modules
 const allTools = [
   ...accountTools,
   ...commentTools,
   ...messageTools,
   ...reviewTools,
   ...analyticsTools,
+  ...adsTools,
+  ...contactTools,
+  ...broadcastTools,
+  ...automationTools,
+  ...postTools,
+  ...profileTools,
+  ...socialTools,
+  ...connectTools,
+  ...whatsappBusinessTools,
 ];
 
-// Register every tool with the MCP server
 for (const tool of allTools) {
   server.tool(
     tool.name,
     tool.description,
     tool.inputSchema.shape as any,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = await tool.handler(args as any);
         return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(result, null, 2),
-            },
-          ],
+          content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
         };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
