@@ -26,7 +26,7 @@ for (const tool of allTools) {
   server.tool(
     tool.name,
     tool.description,
-    tool.inputSchema.shape,
+    tool.inputSchema.shape as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any) => {
       try {
