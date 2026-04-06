@@ -1,7 +1,10 @@
 {
-  "name": "zernio-mcp",
+  "name": "@eyalm321/zernio-mcp",
   "version": "2.0.0",
-  "description": "MCP server for Zernio — social media inbox, analytics, comments, messages and reviews",
+  "description": "MCP server for Zernio — 273 tools covering posts, analytics, inbox, ads, contacts, WhatsApp Business across 14+ platforms",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "main": "dist/index.js",
   "bin": {
     "zernio-mcp": "dist/index.js"
