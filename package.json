@@ -1,0 +1,26 @@
+{
+  "name": "zernio-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Zernio — social media inbox, analytics, comments, messages and reviews",
+  "main": "dist/index.js",
+  "bin": {
+    "zernio-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": ["mcp", "zernio", "social-media", "claude"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}
