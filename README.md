@@ -1,32 +1,24 @@
 # zernio-mcp
 
 [![CI](https://github.com/Eyalm321/zernio-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Eyalm321/zernio-mcp/actions/workflows/ci.yml)
-[![GitHub Package](https://img.shields.io/github/v/release/Eyalm321/zernio-mcp?label=package)](https://github.com/Eyalm321/zernio-mcp/packages)
+[![npm version](https://img.shields.io/npm/v/zernio-mcp)](https://www.npmjs.com/package/zernio-mcp)
+[![GitHub Package](https://img.shields.io/github/v/release/Eyalm321/zernio-mcp?label=github%20package)](https://github.com/Eyalm321/zernio-mcp/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude full access to the [Zernio](https://zernio.com) social media management API — **273 tools** covering posts, analytics, inbox, ads, contacts, WhatsApp Business, and more across 14+ platforms.
 
 ## Quick Start
 
-### Option 1: Install from GitHub Packages (recommended)
+### Option 1: npx (recommended)
 
-First, configure npm to use GitHub Packages for the `@eyalm321` scope. Create or edit `~/.npmrc`:
-
-```
-@eyalm321:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-```
-
-> You need a GitHub personal access token with `read:packages` scope. [Create one here](https://github.com/settings/tokens/new?scopes=read:packages).
-
-Then add this to your `claude_desktop_config.json`:
+No installation needed. Add this to your `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "zernio": {
       "command": "npx",
-      "args": ["@eyalm321/zernio-mcp"],
+      "args": ["zernio-mcp"],
       "env": {
         "ZERNIO_API_KEY": "your_zernio_api_key_here"
       }
@@ -34,6 +26,8 @@ Then add this to your `claude_desktop_config.json`:
   }
 }
 ```
+
+> Also available as `@eyalm321/zernio-mcp` on [GitHub Packages](https://github.com/Eyalm321/zernio-mcp/packages).
 
 ### Option 2: Local install
 
@@ -545,7 +539,7 @@ src/
 ## CI/CD
 
 - **CI**: Runs on every push and PR to `main` — builds and tests on Node 20 and 22
-- **Publish**: Automatically publishes to GitHub Packages when a GitHub release is created (uses `GITHUB_TOKEN`, no extra secrets needed)
+- **Publish**: Automatically publishes to both npm and GitHub Packages when a GitHub release is created (requires `NPM_TOKEN` secret for npm; GitHub Packages uses `GITHUB_TOKEN` automatically)
 
 ---
 
