@@ -14,9 +14,19 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["mcp", "zernio", "social-media", "claude", "model-context-protocol", "inbox", "analytics"],
+  "keywords": [
+    "mcp",
+    "zernio",
+    "social-media",
+    "claude",
+    "model-context-protocol",
+    "inbox",
+    "analytics"
+  ],
   "author": "Eyalm321",
   "repository": {
     "type": "git",
@@ -34,6 +44,7 @@
   "devDependencies": {
     "@types/node": "^25.5.2",
     "ts-node": "^10.9.2",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
   }
 }
