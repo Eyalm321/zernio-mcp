@@ -15,6 +15,9 @@ import { profileTools } from "./tools/profiles.js";
 import { socialTools } from "./tools/social.js";
 import { connectTools } from "./tools/connect.js";
 import { whatsappBusinessTools } from "./tools/whatsapp-business.js";
+import { queueTools } from "./tools/queue.js";
+import { redditTools } from "./tools/reddit.js";
+import { validationTools } from "./tools/validation.js";
 
 const server = new McpServer({
   name: "zernio-mcp",
@@ -36,6 +39,9 @@ const allTools = [
   ...socialTools,
   ...connectTools,
   ...whatsappBusinessTools,
+  ...queueTools,
+  ...redditTools,
+  ...validationTools,
 ];
 
 for (const tool of allTools) {

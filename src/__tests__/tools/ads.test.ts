@@ -14,8 +14,8 @@ describe("adsTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 13 tools", () => {
-    expect(adsTools).toHaveLength(13);
+  it("exports 19 tools", () => {
+    expect(adsTools).toHaveLength(19);
   });
 
   it("has no duplicate tool names", () => {
@@ -416,6 +416,135 @@ describe("adsTools", () => {
     it("calls zernioRequest correctly without optional params", async () => {
       await tool.handler({});
       expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/ads/interests", undefined, { query: undefined });
+    });
+  });
+
+  // 14. zernio_create_ad
+  describe("zernio_create_ad", () => {
+    const tool = adsTools.find((t: any) => t.name === "zernio_create_ad")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({
+        accountId: "acc-1",
+        adAccountId: "ad-acc-1",
+        name: "My Ad",
+        goal: "traffic",
+        budgetAmount: 100,
+        budgetType: "daily",
+        currency: "USD",
+        headline: "Buy Now",
+        body: "Great deal",
+        callToAction: "SHOP_NOW",
+        linkUrl: "https://example.com",
+        imageUrl: "https://example.com/img.jpg",
+        countries: ["US", "CA"],
+        ageMin: 18,
+        ageMax: 65,
+        interests: ["int-1"],
+        endDate: "2024-12-31",
+        audienceId: "aud-1",
+      });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/ads/create", {
+        accountId: "acc-1",
+        adAccountId: "ad-acc-1",
+        name: "My Ad",
+        goal: "traffic",
+        budgetAmount: 100,
+        budgetType: "daily",
+        currency: "USD",
+        headline: "Buy Now",
+        body: "Great deal",
+        callToAction: "SHOP_NOW",
+        linkUrl: "https://example.com",
+        imageUrl: "https://example.com/img.jpg",
+        countries: ["US", "CA"],
+        ageMin: 18,
+        ageMax: 65,
+        interests: ["int-1"],
+        endDate: "2024-12-31",
+        audienceId: "aud-1",
+      });
+    });
+  });
+
+  // 15. zernio_get_audience
+  describe("zernio_get_audience", () => {
+    const tool = adsTools.find((t: any) => t.name === "zernio_get_audience")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ audienceId: "aud-123" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/ads/audiences/aud-123");
+    });
+  });
+
+  // 16. zernio_delete_audience
+  describe("zernio_delete_audience", () => {
+    const tool = adsTools.find((t: any) => t.name === "zernio_delete_audience")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ audienceId: "aud-123" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/ads/audiences/aud-123");
+    });
+  });
+
+  // 17. zernio_add_audience_users
+  describe("zernio_add_audience_users", () => {
+    const tool = adsTools.find((t: any) => t.name === "zernio_add_audience_users")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      const users = [{ email: "a@b.com" }, { email: "c@d.com" }];
+      await tool.handler({ audienceId: "aud-123", users });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/ads/audiences/aud-123/users", { users });
+    });
+  });
+
+  // 18. zernio_update_ad
+  describe("zernio_update_ad", () => {
+    const tool = adsTools.find((t: any) => t.name === "zernio_update_ad")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ adId: "ad-99", status: "paused", budget: 200, name: "Updated Ad" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/ads/ad-99", { status: "paused", budget: 200, name: "Updated Ad" });
+    });
+  });
+
+  // 19. zernio_delete_ad
+  describe("zernio_delete_ad", () => {
+    const tool = adsTools.find((t: any) => t.name === "zernio_delete_ad")!;
+
+    it("exists with description", () => {
+      expect(tool).toBeDefined();
+      expect(tool.description).toBeTruthy();
+    });
+
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ adId: "ad-99" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/ads/ad-99");
     });
   });
 });

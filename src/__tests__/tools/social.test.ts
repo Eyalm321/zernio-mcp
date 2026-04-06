@@ -14,8 +14,8 @@ describe("socialTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 23 tools", () => {
-    expect(socialTools).toHaveLength(23);
+  it("exports 33 tools", () => {
+    expect(socialTools).toHaveLength(33);
   });
 
   it("has no duplicate tool names", () => {
@@ -240,6 +240,105 @@ describe("socialTools", () => {
     it("calls zernioRequest correctly", async () => {
       await tool.handler({ contactId: "ct-1", tag: "vip" });
       expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/contacts/ct-1/tags/vip");
+    });
+  });
+
+  // Twitter unlike
+  describe("zernio_twitter_unlike", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_twitter_unlike")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ accountId: "acc-1", tweetId: "tw-1" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/twitter/like", { accountId: "acc-1", tweetId: "tw-1" });
+    });
+  });
+
+  // Sequence management
+  describe("zernio_update_sequence", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_update_sequence")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      const steps = [{ message: "Updated msg", delayDays: 1 }];
+      await tool.handler({ sequenceId: "seq-1", name: "Updated", steps });
+      expect(mockRequest).toHaveBeenCalledWith("PATCH", "/v1/sequences/seq-1", {
+        name: "Updated", steps,
+      });
+    });
+  });
+
+  describe("zernio_delete_sequence", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_delete_sequence")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ sequenceId: "seq-1" });
+      expect(mockRequest).toHaveBeenCalledWith("DELETE", "/v1/sequences/seq-1");
+    });
+  });
+
+  describe("zernio_activate_sequence", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_activate_sequence")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ sequenceId: "seq-1" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/sequences/seq-1/activate");
+    });
+  });
+
+  describe("zernio_pause_sequence", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_pause_sequence")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ sequenceId: "seq-1" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/sequences/seq-1/pause");
+    });
+  });
+
+  describe("zernio_list_sequence_enrollments", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_list_sequence_enrollments")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ sequenceId: "seq-1", limit: 10, offset: 0 });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/sequences/seq-1/enrollments", undefined, { limit: 10, offset: 0 });
+    });
+  });
+
+  // Webhook management
+  describe("zernio_update_webhook", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_update_webhook")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ url: "https://example.com/hook2", events: ["comment.created"], secret: "new-secret" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/webhooks/settings", {
+        url: "https://example.com/hook2", events: ["comment.created"], secret: "new-secret",
+      });
+    });
+  });
+
+  describe("zernio_test_webhook", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_test_webhook")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ events: ["message.received"] });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/webhooks/test", { events: ["message.received"] });
+    });
+  });
+
+  describe("zernio_get_webhook_logs", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_get_webhook_logs")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ limit: 20, offset: 0, status: "failed" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/webhooks/logs", undefined, { limit: 20, offset: 0, status: "failed" });
+    });
+  });
+
+  // Connection logs
+  describe("zernio_get_connection_logs", () => {
+    const tool = socialTools.find((t) => t.name === "zernio_get_connection_logs")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("calls zernioRequest correctly", async () => {
+      await tool.handler({ limit: 50, offset: 0, since: "2024-01-01" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/connections/logs", undefined, { limit: 50, offset: 0, since: "2024-01-01" });
     });
   });
 });

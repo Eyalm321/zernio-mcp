@@ -218,4 +218,88 @@ export const postTools = [
       return zernioRequest("POST", "/v1/posts/validate", { content: args.content, platform: args.platform, mediaIds: args.mediaIds });
     },
   },
+  {
+    name: "zernio_bulk_upload_posts",
+    description: "Create multiple social media posts at once in bulk.",
+    inputSchema: z.object({
+      posts: z.array(z.object({
+        accountIds: z.array(z.string()).describe("List of account IDs to post to"),
+        content: z.string().describe("The post text content"),
+        scheduledAt: z.string().optional().describe("ISO datetime to schedule the post"),
+        mediaIds: z.array(z.string()).optional().describe("List of media IDs to attach"),
+        tags: z.array(z.string()).optional().describe("Tags to label the post"),
+      })).describe("Array of posts to create"),
+    }),
+    handler: async (args: { posts: Array<{ accountIds: string[]; content: string; scheduledAt?: string; mediaIds?: string[]; tags?: string[] }> }) => {
+      return zernioRequest("POST", "/v1/posts/bulk-upload", { posts: args.posts });
+    },
+  },
+  {
+    name: "zernio_edit_published_post",
+    description: "Edit a post that has already been published.",
+    inputSchema: z.object({
+      postId: z.string().describe("The published post ID to edit"),
+      content: z.string().optional().describe("Updated post content"),
+      mediaIds: z.array(z.string()).optional().describe("Updated list of media IDs"),
+    }),
+    handler: async (args: { postId: string; content?: string; mediaIds?: string[] }) => {
+      return zernioRequest("POST", `/v1/posts/${args.postId}/edit`, { content: args.content, mediaIds: args.mediaIds });
+    },
+  },
+  {
+    name: "zernio_unpublish_post",
+    description: "Unpublish a previously published post, removing it from the platform.",
+    inputSchema: z.object({
+      postId: z.string().describe("The post ID to unpublish"),
+    }),
+    handler: async (args: { postId: string }) => {
+      return zernioRequest("POST", `/v1/posts/${args.postId}/unpublish`);
+    },
+  },
+  {
+    name: "zernio_update_post_metadata",
+    description: "Update a post's metadata such as tags and labels without changing its content.",
+    inputSchema: z.object({
+      postId: z.string().describe("The post ID to update metadata for"),
+      tags: z.array(z.string()).optional().describe("Updated tags for the post"),
+      labels: z.array(z.string()).optional().describe("Updated labels for the post"),
+    }),
+    handler: async (args: { postId: string; tags?: string[]; labels?: string[] }) => {
+      return zernioRequest("POST", `/v1/posts/${args.postId}/update-metadata`, { tags: args.tags, labels: args.labels });
+    },
+  },
+  {
+    name: "zernio_get_post_logs",
+    description: "Get the activity logs for a specific post -- publishing attempts, edits, approval changes, etc.",
+    inputSchema: z.object({
+      postId: z.string().describe("The post ID to get logs for"),
+      limit: z.number().optional().describe("Max log entries to return"),
+    }),
+    handler: async (args: { postId: string; limit?: number }) => {
+      return zernioRequest("GET", `/v1/posts/${args.postId}/logs`, undefined, { limit: args.limit });
+    },
+  },
+  {
+    name: "zernio_get_publishing_logs",
+    description: "Get publishing logs across all posts -- a global view of publishing activity.",
+    inputSchema: z.object({
+      since: z.string().optional().describe("Start date filter (ISO format)"),
+      until: z.string().optional().describe("End date filter (ISO format)"),
+      limit: z.number().optional().describe("Max log entries to return"),
+    }),
+    handler: async (args: { since?: string; until?: string; limit?: number }) => {
+      return zernioRequest("GET", "/v1/posts/logs", undefined, { since: args.since, until: args.until, limit: args.limit });
+    },
+  },
+  {
+    name: "zernio_upload_media_direct",
+    description: "Upload a media file directly using base64 data or a URL for a specific account.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The account ID to upload media for"),
+      file: z.string().describe("The file content as base64 string or a public URL"),
+    }),
+    handler: async (args: { accountId: string; file: string }) => {
+      return zernioRequest("POST", "/v1/media/upload-direct", { accountId: args.accountId, file: args.file });
+    },
+  },
 ];
