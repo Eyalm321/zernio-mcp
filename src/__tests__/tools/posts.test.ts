@@ -48,12 +48,22 @@ describe("postTools", () => {
     it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
     it("calls zernioRequest correctly", async () => {
       await tool.handler({
-        accountIds: ["acc-1", "acc-2"], content: "Hello!", scheduledAt: "2024-12-01T10:00:00Z",
-        mediaIds: ["m-1"], tags: ["promo"],
+        content: "Hello!",
+        platforms: [{ platform: "twitter", accountId: "acc-1" }],
+        mediaItems: [{ type: "image", url: "https://media.zernio.com/test.jpg" }],
+        publishNow: true,
+        tags: ["promo"],
       });
       expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts", {
-        accountIds: ["acc-1", "acc-2"], content: "Hello!", scheduledAt: "2024-12-01T10:00:00Z",
-        mediaIds: ["m-1"], tags: ["promo"],
+        content: "Hello!",
+        title: undefined,
+        platforms: [{ platform: "twitter", accountId: "acc-1" }],
+        mediaItems: [{ type: "image", url: "https://media.zernio.com/test.jpg" }],
+        scheduledFor: undefined,
+        publishNow: true,
+        isDraft: undefined,
+        tags: ["promo"],
+        timezone: undefined,
       });
     });
   });
@@ -62,9 +72,9 @@ describe("postTools", () => {
     const tool = postTools.find((t) => t.name === "zernio_update_post")!;
     it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ postId: "post-1", content: "Updated", scheduledAt: undefined, mediaIds: undefined, tags: undefined });
+      await tool.handler({ postId: "post-1", content: "Updated", mediaItems: undefined, scheduledFor: undefined, tags: undefined });
       expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/posts/post-1", {
-        content: "Updated", scheduledAt: undefined, mediaIds: undefined, tags: undefined,
+        content: "Updated", mediaItems: undefined, scheduledFor: undefined, tags: undefined,
       });
     });
   });
