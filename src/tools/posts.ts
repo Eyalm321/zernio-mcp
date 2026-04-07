@@ -61,6 +61,12 @@ export const postTools = [
         platform: z.string().describe("Platform name: twitter, instagram, facebook, linkedin, tiktok, youtube, pinterest, reddit, bluesky, threads, googlebusiness, telegram, snapchat"),
         accountId: z.string().describe("The Zernio account ID for this platform"),
         customContent: z.string().optional().describe("Platform-specific text override"),
+        customMedia: z.array(z.object({
+          type: z.string().describe("Media type: image, video, gif, or document"),
+          url: z.string().describe("Public URL of the media file"),
+        })).optional().describe("Platform-specific media override"),
+        scheduledFor: z.string().optional().describe("Per-platform scheduled time override (ISO datetime)"),
+        platformSpecificData: z.record(z.string(), z.unknown()).optional().describe("Platform-specific settings (e.g. Reddit: {subreddit, flairId}, Pinterest: {boardId}, YouTube: {privacyStatus, playlistId}, TikTok: {privacySetting, duetDisabled}, Facebook: {contentType: 'reel'|'story'}, Instagram: {contentType: 'story'}, LinkedIn: {visibility})"),
       })).optional().describe("Target platforms and accounts. Required for non-draft posts."),
       mediaItems: z.array(z.object({
         type: z.string().describe("Media type: image, video, gif, or document"),
@@ -74,7 +80,7 @@ export const postTools = [
     }),
     handler: async (args: {
       content?: string; title?: string;
-      platforms?: Array<{ platform: string; accountId: string; customContent?: string }>;
+      platforms?: Array<{ platform: string; accountId: string; customContent?: string; customMedia?: Array<{ type: string; url: string }>; scheduledFor?: string; platformSpecificData?: Record<string, unknown> }>;
       mediaItems?: Array<{ type: string; url: string }>;
       scheduledFor?: string; publishNow?: boolean; isDraft?: boolean;
       tags?: string[]; timezone?: string;
