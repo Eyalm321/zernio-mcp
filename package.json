@@ -1,6 +1,6 @@
 {
   "name": "@eyalm321/zernio-mcp",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "MCP server for Zernio — 273 tools covering posts, analytics, inbox, ads, contacts, WhatsApp Business across 14+ platforms",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
