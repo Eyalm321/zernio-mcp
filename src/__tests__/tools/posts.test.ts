@@ -14,8 +14,8 @@ describe("postTools", () => {
     mockRequest.mockClear();
   });
 
-  it("exports 25 tools", () => {
-    expect(postTools).toHaveLength(25);
+  it("exports 26 tools", () => {
+    expect(postTools).toHaveLength(26);
   });
 
   it("has no duplicate tool names", () => {
@@ -278,5 +278,11 @@ describe("postTools", () => {
         accountId: "acc-1", file: "base64data...",
       });
     });
+  });
+
+  describe("zernio_upload_media_from_file", () => {
+    const tool = postTools.find((t) => t.name === "zernio_upload_media_from_file")!;
+    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
+    it("has a valid input schema", () => { expect(tool.inputSchema).toBeDefined(); });
   });
 });
