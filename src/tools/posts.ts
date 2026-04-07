@@ -14,6 +14,7 @@ const MIME_TYPES: Record<string, string> = {
   ".mov": "video/quicktime",
   ".avi": "video/x-msvideo",
   ".webm": "video/webm",
+  ".pdf": "application/pdf",
 };
 
 export const postTools = [
@@ -308,22 +309,53 @@ export const postTools = [
   },
   {
     name: "zernio_upload_media_direct",
-    description: "Upload a media file directly using base64 data or a URL for a specific account.",
+    description:
+      "Upload a local file to Zernio's temporary media storage (for use as inbox message attachments). Reads the file from disk and uploads via multipart/form-data. Files auto-delete after 7 days. Max 25MB.",
     inputSchema: z.object({
-      accountId: z.string().describe("The account ID to upload media for"),
-      file: z.string().describe("The file content as base64 string or a public URL"),
+      filePath: z.string().describe("Absolute path to the local file to upload (max 25MB)"),
+      contentType: z.string().optional().describe("Override MIME type (auto-detected from extension if omitted)"),
     }),
-    handler: async (args: { accountId: string; file: string }) => {
-      return zernioRequest("POST", "/v1/media/upload-direct", { accountId: args.accountId, file: args.file });
+    handler: async (args: { filePath: string; contentType?: string }) => {
+      const ext = extname(args.filePath).toLowerCase();
+      const detectedType = args.contentType || MIME_TYPES[ext];
+      if (!detectedType) {
+        throw new Error(`Unsupported file type: ${ext}. Supported: ${Object.keys(MIME_TYPES).join(", ")}`);
+      }
+
+      const fileBuffer = readFileSync(args.filePath);
+      const filename = basename(args.filePath);
+      const blob = new Blob([fileBuffer], { type: detectedType });
+
+      const formData = new FormData();
+      formData.append("file", blob, filename);
+      if (args.contentType) {
+        formData.append("contentType", args.contentType);
+      }
+
+      const key = process.env.ZERNIO_API_KEY;
+      if (!key) throw new Error("ZERNIO_API_KEY environment variable is not set");
+
+      const res = await fetch("https://zernio.com/api/v1/media/upload-direct", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Zernio API error ${res.status}: ${text}`);
+      }
+
+      return res.json();
     },
   },
   {
     name: "zernio_upload_media_from_file",
     description:
-      "Upload a local image or video file to Zernio by reading it from disk. Use this when you have a local file path instead of a public URL. The MCP server reads the file, gets a presigned upload URL from Zernio, uploads the file, and returns the media ID ready for use in posts.",
+      "Upload a local image or video file to Zernio by reading it from disk. Use this when you have a local file path instead of a public URL. The MCP server reads the file, gets a presigned upload URL from Zernio, uploads the file, and returns the publicUrl to use in posts. Supports jpg, jpeg, png, gif, webp, mp4, mov, avi, webm, pdf.",
     inputSchema: z.object({
       filePath: z.string().describe("Absolute path to the local image or video file (e.g. /home/user/photos/banner.jpg, C:\\Users\\me\\image.png)"),
-      type: z.string().optional().describe("Media type: image or video (auto-detected from file extension if omitted)"),
+      type: z.string().optional().describe("Media type: image, video, gif, or document (auto-detected from file extension if omitted)"),
       altText: z.string().optional().describe("Alt text for accessibility"),
     }),
     handler: async (args: { filePath: string; type?: string; altText?: string }) => {
@@ -335,12 +367,13 @@ export const postTools = [
 
       const fileBuffer = readFileSync(args.filePath);
       const filename = basename(args.filePath);
+      const fileSize = fileBuffer.byteLength;
 
       // Step 1: Get a presigned upload URL from Zernio
-      const presigned = await zernioRequest<{ uploadUrl: string; mediaId: string; fileUrl: string }>(
+      const presigned = await zernioRequest<{ uploadUrl: string; publicUrl: string; key: string; type: string }>(
         "POST",
         "/v1/media/presign",
-        { filename, contentType }
+        { filename, contentType, size: fileSize }
       );
 
       // Step 2: Upload the file to the presigned URL
@@ -352,18 +385,20 @@ export const postTools = [
 
       if (!uploadRes.ok) {
         const text = await uploadRes.text().catch(() => "");
-        throw new Error(`Upload failed (${uploadRes.status}): ${text}`);
+        throw new Error(`Upload to storage failed (${uploadRes.status}): ${text}`);
       }
 
-      // Step 3: Register the uploaded media with Zernio
-      const mediaType = args.type || (contentType.startsWith("video/") ? "video" : "image");
-      const result = await zernioRequest("POST", "/v1/media", {
-        url: presigned.fileUrl,
+      // Return the public URL and metadata — use publicUrl directly in post media
+      const mediaType = args.type || presigned.type || (contentType.startsWith("video/") ? "video" : contentType === "application/pdf" ? "document" : "image");
+      return {
+        publicUrl: presigned.publicUrl,
+        key: presigned.key,
         type: mediaType,
+        filename,
+        contentType,
+        size: fileSize,
         altText: args.altText,
-      });
-
-      return result;
+      };
     },
   },
 ];

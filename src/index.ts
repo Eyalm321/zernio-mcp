@@ -21,7 +21,7 @@ import { validationTools } from "./tools/validation.js";
 
 const server = new McpServer({
   name: "zernio-mcp",
-  version: "2.0.3",
+  version: "2.0.4",
 });
 
 const allTools = [
