@@ -9,11 +9,13 @@ const MIME_TYPES: Record<string, string> = {
   ".png": "image/png",
   ".gif": "image/gif",
   ".webp": "image/webp",
-  ".svg": "image/svg+xml",
   ".mp4": "video/mp4",
   ".mov": "video/quicktime",
-  ".avi": "video/x-msvideo",
+  ".avi": "video/avi",
   ".webm": "video/webm",
+  ".m4v": "video/x-m4v",
+  ".mpeg": "video/mpeg",
+  ".mpg": "video/mpeg",
   ".pdf": "application/pdf",
 };
 
@@ -50,21 +52,43 @@ export const postTools = [
   },
   {
     name: "zernio_create_post",
-    description: "Create a new social media post (draft or scheduled) for one or more accounts.",
+    description:
+      "Create a new social media post. Provide platforms as an array of {platform, accountId} objects and media as mediaItems [{type, url}]. Use zernio_upload_media_from_file to get publicUrls for local files.",
     inputSchema: z.object({
-      accountIds: z.array(z.string()).describe("List of account IDs to post to"),
-      content: z.string().describe("The post text content"),
-      scheduledAt: z.string().optional().describe("ISO datetime to schedule the post (omit to save as draft)"),
-      mediaIds: z.array(z.string()).optional().describe("List of media IDs to attach to the post"),
-      tags: z.array(z.string()).optional().describe("Tags to label the post"),
+      content: z.string().optional().describe("Post caption/text. Optional when media is attached."),
+      title: z.string().optional().describe("Post title (used for YouTube, LinkedIn articles)"),
+      platforms: z.array(z.object({
+        platform: z.string().describe("Platform name: twitter, instagram, facebook, linkedin, tiktok, youtube, pinterest, reddit, bluesky, threads, googlebusiness, telegram, snapchat"),
+        accountId: z.string().describe("The Zernio account ID for this platform"),
+        customContent: z.string().optional().describe("Platform-specific text override"),
+      })).optional().describe("Target platforms and accounts. Required for non-draft posts."),
+      mediaItems: z.array(z.object({
+        type: z.string().describe("Media type: image, video, gif, or document"),
+        url: z.string().describe("Public URL of the media file (use publicUrl from zernio_upload_media_from_file)"),
+      })).optional().describe("Media attachments for the post"),
+      scheduledFor: z.string().optional().describe("ISO datetime to schedule the post"),
+      publishNow: z.boolean().optional().describe("Set true to publish immediately"),
+      isDraft: z.boolean().optional().describe("Set true to save as draft"),
+      tags: z.array(z.string()).optional().describe("Tags/keywords for the post"),
+      timezone: z.string().optional().describe("Timezone for scheduling (default: UTC)"),
     }),
-    handler: async (args: { accountIds: string[]; content: string; scheduledAt?: string; mediaIds?: string[]; tags?: string[] }) => {
+    handler: async (args: {
+      content?: string; title?: string;
+      platforms?: Array<{ platform: string; accountId: string; customContent?: string }>;
+      mediaItems?: Array<{ type: string; url: string }>;
+      scheduledFor?: string; publishNow?: boolean; isDraft?: boolean;
+      tags?: string[]; timezone?: string;
+    }) => {
       return zernioRequest("POST", "/v1/posts", {
-        accountIds: args.accountIds,
         content: args.content,
-        scheduledAt: args.scheduledAt,
-        mediaIds: args.mediaIds,
+        title: args.title,
+        platforms: args.platforms,
+        mediaItems: args.mediaItems,
+        scheduledFor: args.scheduledFor,
+        publishNow: args.publishNow,
+        isDraft: args.isDraft,
         tags: args.tags,
+        timezone: args.timezone,
       });
     },
   },
@@ -74,15 +98,18 @@ export const postTools = [
     inputSchema: z.object({
       postId: z.string().describe("The post ID to update"),
       content: z.string().optional().describe("Updated post content"),
-      scheduledAt: z.string().optional().describe("Updated scheduled time (ISO format)"),
-      mediaIds: z.array(z.string()).optional().describe("Updated list of media IDs"),
+      mediaItems: z.array(z.object({
+        type: z.string().describe("Media type: image, video, gif, or document"),
+        url: z.string().describe("Public URL of the media file"),
+      })).optional().describe("Updated media attachments"),
+      scheduledFor: z.string().optional().describe("Updated scheduled time (ISO format)"),
       tags: z.array(z.string()).optional().describe("Updated tags"),
     }),
-    handler: async (args: { postId: string; content?: string; scheduledAt?: string; mediaIds?: string[]; tags?: string[] }) => {
+    handler: async (args: { postId: string; content?: string; mediaItems?: Array<{ type: string; url: string }>; scheduledFor?: string; tags?: string[] }) => {
       return zernioRequest("PUT", `/v1/posts/${args.postId}`, {
         content: args.content,
-        scheduledAt: args.scheduledAt,
-        mediaIds: args.mediaIds,
+        mediaItems: args.mediaItems,
+        scheduledFor: args.scheduledFor,
         tags: args.tags,
       });
     },
