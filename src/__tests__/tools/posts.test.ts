@@ -243,8 +243,8 @@ describe("postTools", () => {
     const tool = postTools.find((t) => t.name === "zernio_unpublish_post")!;
     it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ postId: "post-1" });
-      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/post-1/unpublish");
+      await tool.handler({ postId: "post-1", platform: "facebook" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/post-1/unpublish", { platform: "facebook" });
     });
   });
 

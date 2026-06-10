@@ -300,9 +300,10 @@ export const postTools = [
     description: "Unpublish a previously published post, removing it from the platform.",
     inputSchema: z.object({
       postId: z.string().describe("The post ID to unpublish"),
+      platform: z.string().describe("The platform to unpublish from (e.g. facebook, instagram, twitter, linkedin)"),
     }),
-    handler: async (args: { postId: string }) => {
-      return zernioRequest("POST", `/v1/posts/${args.postId}/unpublish`);
+    handler: async (args: { postId: string; platform: string }) => {
+      return zernioRequest("POST", `/v1/posts/${args.postId}/unpublish`, { platform: args.platform });
     },
   },
   {
