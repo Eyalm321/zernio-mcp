@@ -92,11 +92,11 @@ describe("commentTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ commentId: "c-1", message: "Thanks!", accountId: "acc-1" });
+      await tool.handler({ postId: "p-1", commentId: "c-1", message: "Thanks!", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
-        "/v1/inbox/comments/c-1/reply",
-        { message: "Thanks!", accountId: "acc-1" }
+        "/v1/inbox/comments/p-1",
+        { accountId: "acc-1", commentId: "c-1", message: "Thanks!" }
       );
     });
   });
@@ -110,10 +110,10 @@ describe("commentTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ commentId: "c-2", message: "DM reply", accountId: "acc-1" });
+      await tool.handler({ postId: "p-1", commentId: "c-2", message: "DM reply", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
-        "/v1/inbox/comments/c-2/private-reply",
+        "/v1/inbox/comments/p-1/c-2/private-reply",
         { message: "DM reply", accountId: "acc-1" }
       );
     });
@@ -128,10 +128,10 @@ describe("commentTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ commentId: "c-3", accountId: "acc-1" });
+      await tool.handler({ postId: "p-1", commentId: "c-3", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
-        "/v1/inbox/comments/c-3/like",
+        "/v1/inbox/comments/p-1/c-3/like",
         { accountId: "acc-1" }
       );
     });
@@ -146,10 +146,10 @@ describe("commentTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ commentId: "c-4", accountId: "acc-1" });
+      await tool.handler({ postId: "p-1", commentId: "c-4", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
-        "/v1/inbox/comments/c-4/hide",
+        "/v1/inbox/comments/p-1/c-4/hide",
         { accountId: "acc-1" }
       );
     });
@@ -164,11 +164,12 @@ describe("commentTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ commentId: "c-5", accountId: "acc-1" });
+      await tool.handler({ postId: "p-1", commentId: "c-5", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
-        "/v1/inbox/comments/c-5",
-        { accountId: "acc-1" }
+        "/v1/inbox/comments/p-1",
+        undefined,
+        { accountId: "acc-1", commentId: "c-5" }
       );
     });
   });

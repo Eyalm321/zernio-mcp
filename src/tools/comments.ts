@@ -65,14 +65,16 @@ export const commentTools = [
     description:
       "Reply to a comment on a social media post. Works across Facebook, Instagram, YouTube, TikTok, LinkedIn, Twitter, and more.",
     inputSchema: z.object({
+      postId: z.string().describe("The post ID the comment belongs to (Facebook: {pageId}_{postId})"),
       commentId: z.string().describe("The comment ID to reply to"),
       message: z.string().describe("The reply text"),
       accountId: z.string().describe("The Zernio account ID to reply from"),
     }),
-    handler: async (args: { commentId: string; message: string; accountId: string }) => {
-      return zernioRequest("POST", `/v1/inbox/comments/${args.commentId}/reply`, {
-        message: args.message,
+    handler: async (args: { postId: string; commentId: string; message: string; accountId: string }) => {
+      return zernioRequest("POST", `/v1/inbox/comments/${args.postId}`, {
         accountId: args.accountId,
+        commentId: args.commentId,
+        message: args.message,
       });
     },
   },
@@ -81,12 +83,13 @@ export const commentTools = [
     description:
       "Send a private/direct message reply to someone who commented on a post. Useful for handling sensitive customer issues privately instead of publicly.",
     inputSchema: z.object({
+      postId: z.string().describe("The post ID the comment belongs to"),
       commentId: z.string().describe("The comment ID to privately reply to"),
       message: z.string().describe("The private message text"),
       accountId: z.string().describe("The Zernio account ID to send from"),
     }),
-    handler: async (args: { commentId: string; message: string; accountId: string }) => {
-      return zernioRequest("POST", `/v1/inbox/comments/${args.commentId}/private-reply`, {
+    handler: async (args: { postId: string; commentId: string; message: string; accountId: string }) => {
+      return zernioRequest("POST", `/v1/inbox/comments/${args.postId}/${args.commentId}/private-reply`, {
         message: args.message,
         accountId: args.accountId,
       });
@@ -94,13 +97,15 @@ export const commentTools = [
   },
   {
     name: "zernio_like_comment",
-    description: "Like or react to a comment on a post.",
+    description:
+      "Like or react to a comment on a post.",
     inputSchema: z.object({
+      postId: z.string().describe("The post ID the comment belongs to"),
       commentId: z.string().describe("The comment ID to like"),
       accountId: z.string().describe("The Zernio account ID"),
     }),
-    handler: async (args: { commentId: string; accountId: string }) => {
-      return zernioRequest("POST", `/v1/inbox/comments/${args.commentId}/like`, {
+    handler: async (args: { postId: string; commentId: string; accountId: string }) => {
+      return zernioRequest("POST", `/v1/inbox/comments/${args.postId}/${args.commentId}/like`, {
         accountId: args.accountId,
       });
     },
@@ -110,11 +115,12 @@ export const commentTools = [
     description:
       "Hide a comment from public view on a post. The comment is not deleted but hidden from other users.",
     inputSchema: z.object({
+      postId: z.string().describe("The post ID the comment belongs to"),
       commentId: z.string().describe("The comment ID to hide"),
       accountId: z.string().describe("The Zernio account ID"),
     }),
-    handler: async (args: { commentId: string; accountId: string }) => {
-      return zernioRequest("POST", `/v1/inbox/comments/${args.commentId}/hide`, {
+    handler: async (args: { postId: string; commentId: string; accountId: string }) => {
+      return zernioRequest("POST", `/v1/inbox/comments/${args.postId}/${args.commentId}/hide`, {
         accountId: args.accountId,
       });
     },
@@ -124,12 +130,15 @@ export const commentTools = [
     description:
       "Permanently delete a comment from a post. Use with caution — this cannot be undone.",
     inputSchema: z.object({
+      postId: z.string().describe("The post ID the comment belongs to"),
       commentId: z.string().describe("The comment ID to delete"),
       accountId: z.string().describe("The Zernio account ID"),
     }),
-    handler: async (args: { commentId: string; accountId: string }) => {
-      return zernioRequest("DELETE", `/v1/inbox/comments/${args.commentId}`, {
+    handler: async (args: { postId: string; commentId: string; accountId: string }) => {
+      // The API takes accountId and commentId as query parameters on DELETE, not a body.
+      return zernioRequest("DELETE", `/v1/inbox/comments/${args.postId}`, undefined, {
         accountId: args.accountId,
+        commentId: args.commentId,
       });
     },
   },
