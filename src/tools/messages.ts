@@ -23,9 +23,10 @@ export const messageTools = [
     description: "Get details and metadata for a specific conversation.",
     inputSchema: z.object({
       conversationId: z.string().describe("The conversation ID"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
     }),
-    handler: async (args: { conversationId: string }) => {
-      return zernioRequest("GET", `/v1/inbox/conversations/${args.conversationId}`);
+    handler: async (args: { conversationId: string; accountId: string }) => {
+      return zernioRequest("GET", `/v1/inbox/conversations/${args.conversationId}`, undefined, { accountId: args.accountId });
     },
   },
   {
@@ -33,10 +34,14 @@ export const messageTools = [
     description: "Read the messages in a specific conversation thread.",
     inputSchema: z.object({
       conversationId: z.string().describe("The conversation ID"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
       limit: z.number().optional().describe("Max messages to return (default 50)"),
     }),
-    handler: async (args: { conversationId: string; limit?: number }) => {
-      return zernioRequest("GET", `/v1/inbox/conversations/${args.conversationId}/messages`, undefined, { limit: args.limit });
+    handler: async (args: { conversationId: string; accountId: string; limit?: number }) => {
+      return zernioRequest("GET", `/v1/inbox/conversations/${args.conversationId}/messages`, undefined, {
+        accountId: args.accountId,
+        limit: args.limit,
+      });
     },
   },
   {

@@ -50,10 +50,12 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123" });
+      await tool.handler({ conversationId: "conv-123", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "GET",
-        "/v1/inbox/conversations/conv-123"
+        "/v1/inbox/conversations/conv-123",
+        undefined,
+        { accountId: "acc-1" }
       );
     });
   });
@@ -61,18 +63,22 @@ describe("messageTools", () => {
   describe("zernio_list_messages", () => {
     const tool = messageTools.find((t) => t.name === "zernio_list_messages")!;
 
+    it("requires accountId (the API rejects reads without it)", () => {
+      expect(tool.inputSchema.safeParse({ conversationId: "conv-123" }).success).toBe(false);
+    });
+
     it("exists with correct name and description", () => {
       expect(tool).toBeDefined();
       expect(tool.description).toBeTruthy();
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", limit: 50 });
+      await tool.handler({ conversationId: "conv-123", accountId: "acc-1", limit: 50 });
       expect(mockRequest).toHaveBeenCalledWith(
         "GET",
         "/v1/inbox/conversations/conv-123/messages",
         undefined,
-        { limit: 50 }
+        { accountId: "acc-1", limit: 50 }
       );
     });
   });
