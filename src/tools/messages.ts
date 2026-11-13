@@ -51,11 +51,29 @@ export const messageTools = [
       conversationId: z.string().describe("The conversation ID to reply to"),
       accountId: z.string().describe("The Zernio account ID to send from"),
       message: z.string().describe("The message text to send"),
+      messagingType: z
+        .enum(["RESPONSE", "UPDATE", "MESSAGE_TAG"])
+        .optional()
+        .describe("Facebook messaging type. Required when using messageTag (set it to MESSAGE_TAG)."),
+      messageTag: z
+        .enum(["CONFIRMED_EVENT_UPDATE", "POST_PURCHASE_UPDATE", "ACCOUNT_UPDATE", "HUMAN_AGENT"])
+        .optional()
+        .describe(
+          "Facebook and Instagram message tag. To reply after the 24h window, send HUMAN_AGENT with messagingType MESSAGE_TAG: it works up to 7 days after the person's last message, for replies typed by a person only. Meta retired the other tags, so they fail."
+        ),
     }),
-    handler: async (args: { conversationId: string; accountId: string; message: string }) => {
+    handler: async (args: {
+      conversationId: string;
+      accountId: string;
+      message: string;
+      messagingType?: "RESPONSE" | "UPDATE" | "MESSAGE_TAG";
+      messageTag?: "CONFIRMED_EVENT_UPDATE" | "POST_PURCHASE_UPDATE" | "ACCOUNT_UPDATE" | "HUMAN_AGENT";
+    }) => {
       return zernioRequest("POST", `/v1/inbox/conversations/${args.conversationId}/messages`, {
         accountId: args.accountId,
         message: args.message,
+        ...(args.messagingType !== undefined && { messagingType: args.messagingType }),
+        ...(args.messageTag !== undefined && { messageTag: args.messageTag }),
       });
     },
   },
