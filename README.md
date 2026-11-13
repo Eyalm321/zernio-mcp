@@ -193,7 +193,7 @@ Then configure Claude Desktop:
 | `zernio_list_conversations` | List DM conversations across platforms |
 | `zernio_get_conversation` | Get conversation details |
 | `zernio_list_messages` | Read messages in a conversation |
-| `zernio_send_message` | Send a DM reply |
+| `zernio_send_message` | Send a DM reply (optional `messagingType` / `messageTag`, e.g. `MESSAGE_TAG` + `HUMAN_AGENT` to reply on Facebook/Instagram after the 24h window) |
 | `zernio_create_conversation` | Start a new DM conversation |
 | `zernio_edit_message` | Edit a sent message |
 | `zernio_delete_message` | Delete a message |
@@ -213,6 +213,8 @@ Then configure Claude Desktop:
 | `zernio_hide_comment` | Hide a comment from public view |
 | `zernio_unhide_comment` | Unhide a hidden comment |
 | `zernio_delete_comment` | Delete a comment |
+
+The comment actions (reply, private reply, like, hide, unhide, delete) all take `postId` as well as `commentId`: Zernio routes them under the post. Get both from `zernio_get_post_comments`.
 
 ### Reviews (3 tools)
 

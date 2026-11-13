@@ -152,7 +152,8 @@ export const commentTools = [
       accountId: z.string().describe("The Zernio account ID"),
     }),
     handler: async (args: { postId: string; commentId: string; accountId: string }) => {
-      return zernioRequest("DELETE", `/v1/inbox/comments/${args.postId}/${args.commentId}/hide`, {
+      // The API takes accountId as a query parameter on DELETE, not a body.
+      return zernioRequest("DELETE", `/v1/inbox/comments/${args.postId}/${args.commentId}/hide`, undefined, {
         accountId: args.accountId,
       });
     },

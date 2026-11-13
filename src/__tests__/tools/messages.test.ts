@@ -99,6 +99,44 @@ describe("messageTools", () => {
         { accountId: "acc-1", message: "Hello!" }
       );
     });
+
+    it("omits messagingType and messageTag when not set", async () => {
+      await tool.handler({ conversationId: "conv-123", accountId: "acc-1", message: "Hello!" });
+      const body = mockRequest.mock.calls[0][2] as Record<string, unknown>;
+      expect(body).not.toHaveProperty("messagingType");
+      expect(body).not.toHaveProperty("messageTag");
+    });
+
+    it("passes messagingType and messageTag through when set", async () => {
+      await tool.handler({
+        conversationId: "conv-123",
+        accountId: "acc-1",
+        message: "Following up",
+        messagingType: "MESSAGE_TAG",
+        messageTag: "HUMAN_AGENT",
+      });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "POST",
+        "/v1/inbox/conversations/conv-123/messages",
+        { accountId: "acc-1", message: "Following up", messagingType: "MESSAGE_TAG", messageTag: "HUMAN_AGENT" }
+      );
+    });
+
+    it("passes messagingType alone when only it is set", async () => {
+      await tool.handler({ conversationId: "conv-123", accountId: "acc-1", message: "Hi", messagingType: "RESPONSE" });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "POST",
+        "/v1/inbox/conversations/conv-123/messages",
+        { accountId: "acc-1", message: "Hi", messagingType: "RESPONSE" }
+      );
+    });
+
+    it("accepts only the spec's messagingType and messageTag values", () => {
+      const base = { conversationId: "c", accountId: "a", message: "m" };
+      expect(tool.inputSchema.safeParse({ ...base, messagingType: "MESSAGE_TAG", messageTag: "HUMAN_AGENT" }).success).toBe(true);
+      expect(tool.inputSchema.safeParse({ ...base, messagingType: "NOPE" }).success).toBe(false);
+      expect(tool.inputSchema.safeParse({ ...base, messageTag: "human_agent" }).success).toBe(false);
+    });
   });
 
   describe("zernio_create_conversation", () => {

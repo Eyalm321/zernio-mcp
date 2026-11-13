@@ -187,6 +187,7 @@ describe("commentTools", () => {
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
         "/v1/inbox/comments/post-1/c-6/hide",
+        undefined,
         { accountId: "acc-1" }
       );
     });
