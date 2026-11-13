@@ -3,6 +3,8 @@ name: Publish
 on:
   release:
     types: [published]
+  # Re-publish the current version to npm only (e.g. after an npm-side failure).
+  workflow_dispatch:
 
 jobs:
   test-and-build:
@@ -27,6 +29,7 @@ jobs:
 
   publish-github:
     needs: test-and-build
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,18 +55,27 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # npm trusted publishing (OIDC): no NPM_TOKEN to expire. Needs the trusted publisher set on
+  # npmjs.com (package zernio-mcp -> Settings -> Trusted publisher: GitHub Actions,
+  # Eyalm321/zernio-mcp, workflow publish.yml) and npm 11.5.1+, which Node 24 ships.
   publish-npm:
     needs: test-and-build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v6
 
-      - name: Use Node.js 20
+      - name: Use Node.js 24
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
+
+      - name: Check npm supports trusted publishing (11.5.1+)
+        run: node -e 'const [a,b,c]=process.argv[1].split(".").map(Number);if(a<11||(a===11&&(b<5||(b===5&&c<1)))){console.error("npm "+process.argv[1]+" too old");process.exit(1)}' "$(npm --version)"
 
       - name: Install dependencies
         run: npm ci
@@ -76,5 +88,3 @@ jobs:
           jq '.name = "zernio-mcp" | del(.publishConfig)' package.json > package-npm.json
           mv package-npm.json package.json
           npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
