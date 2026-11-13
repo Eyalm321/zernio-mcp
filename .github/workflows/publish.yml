@@ -60,6 +60,8 @@ jobs:
   # Eyalm321/zernio-mcp, workflow publish.yml) and npm 11.5.1+, which Node 24 ships.
   publish-npm:
     needs: test-and-build
+    # A manual run publishes only from main, never from another branch.
+    if: github.event_name == 'release' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
