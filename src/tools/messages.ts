@@ -82,15 +82,30 @@ export const messageTools = [
     description: "Start a new DM conversation by sending a first message to a contact on a connected social account.",
     inputSchema: z.object({
       accountId: z.string().describe("The social account ID to send from"),
-      contactId: z.string().optional().describe("The Zernio contact ID to message"),
-      recipientId: z.string().optional().describe("The platform-native recipient ID (e.g. Twitter user ID, Instagram PSID)"),
+      participantId: z
+        .string()
+        .optional()
+        .describe(
+          "Recipient identifier: X numeric user ID, WhatsApp/SMS phone number in international format, Slack member ID, or iMessage phone/email. Provide exactly one of participantId or participantUsername"
+        ),
+      participantUsername: z
+        .string()
+        .optional()
+        .describe(
+          "Recipient handle: X or Bluesky handle (with or without @) or Reddit username (with or without u/). Provide exactly one of participantId or participantUsername"
+        ),
       message: z.string().describe("The opening message to send"),
     }),
-    handler: async (args: { accountId: string; contactId?: string; recipientId?: string; message: string }) => {
+    handler: async (args: { accountId: string; participantId?: string; participantUsername?: string; message: string }) => {
+      // The API takes exactly one recipient field. Checked here because the server registers the
+      // schema's shape only, which drops object-level refinements.
+      if ((args.participantId === undefined) === (args.participantUsername === undefined)) {
+        throw new Error("Provide exactly one of participantId or participantUsername");
+      }
       return zernioRequest("POST", "/v1/inbox/conversations", {
         accountId: args.accountId,
-        contactId: args.contactId,
-        recipientId: args.recipientId,
+        ...(args.participantId !== undefined && { participantId: args.participantId }),
+        ...(args.participantUsername !== undefined && { participantUsername: args.participantUsername }),
         message: args.message,
       });
     },
@@ -100,9 +115,10 @@ export const messageTools = [
     description: "Send a typing indicator in a conversation to show the user that you are composing a reply.",
     inputSchema: z.object({
       conversationId: z.string().describe("The conversation ID"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
     }),
-    handler: async (args: { conversationId: string }) => {
-      return zernioRequest("POST", `/v1/inbox/conversations/${args.conversationId}/typing`);
+    handler: async (args: { conversationId: string; accountId: string }) => {
+      return zernioRequest("POST", `/v1/inbox/conversations/${args.conversationId}/typing`, { accountId: args.accountId });
     },
   },
   {
@@ -113,24 +129,30 @@ export const messageTools = [
       messageId: z.string().describe("The message ID to react to"),
       emoji: z.string().describe("The emoji reaction to add"),
       action: z.enum(["add", "remove"]).describe("Whether to add or remove the reaction"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
     }),
-    handler: async (args: { conversationId: string; messageId: string; emoji: string; action: string }) => {
-      return zernioRequest(
-        args.action === "remove" ? "DELETE" : "POST",
-        `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}/reactions`,
-        { emoji: args.emoji }
-      );
+    handler: async (args: { conversationId: string; messageId: string; emoji: string; action: string; accountId: string }) => {
+      const path = `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}/reactions`;
+      // The API takes accountId in the body on POST and as a query parameter on DELETE.
+      if (args.action === "remove") {
+        return zernioRequest("DELETE", path, undefined, { accountId: args.accountId });
+      }
+      return zernioRequest("POST", path, { accountId: args.accountId, emoji: args.emoji });
     },
   },
   {
     name: "zernio_update_conversation_status",
-    description: "Update a conversation's status — mark as read, archive, or unarchive it.",
+    description: "Archive a conversation or set it back to active.",
     inputSchema: z.object({
       conversationId: z.string().describe("The conversation ID"),
-      status: z.enum(["read", "unread", "archived", "unarchived"]).describe("New status for the conversation"),
+      status: z.enum(["active", "archived"]).describe("New status: archived, or active to unarchive"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
     }),
-    handler: async (args: { conversationId: string; status: string }) => {
-      return zernioRequest("PUT", `/v1/inbox/conversations/${args.conversationId}`, { status: args.status });
+    handler: async (args: { conversationId: string; status: string; accountId: string }) => {
+      return zernioRequest("PUT", `/v1/inbox/conversations/${args.conversationId}`, {
+        accountId: args.accountId,
+        status: args.status,
+      });
     },
   },
   {
@@ -140,9 +162,14 @@ export const messageTools = [
       conversationId: z.string().describe("The conversation ID"),
       messageId: z.string().describe("The message ID to edit"),
       message: z.string().describe("The updated message text"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
     }),
-    handler: async (args: { conversationId: string; messageId: string; message: string }) => {
-      return zernioRequest("PATCH", `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}`, { message: args.message });
+    handler: async (args: { conversationId: string; messageId: string; message: string; accountId: string }) => {
+      // The API's field for the new text is `text`.
+      return zernioRequest("PATCH", `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}`, {
+        accountId: args.accountId,
+        text: args.message,
+      });
     },
   },
   {
@@ -151,9 +178,13 @@ export const messageTools = [
     inputSchema: z.object({
       conversationId: z.string().describe("The conversation ID"),
       messageId: z.string().describe("The message ID to delete"),
+      accountId: z.string().describe("The Zernio account ID the conversation belongs to (accountId from zernio_list_conversations); the API requires it"),
     }),
-    handler: async (args: { conversationId: string; messageId: string }) => {
-      return zernioRequest("DELETE", `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}`);
+    handler: async (args: { conversationId: string; messageId: string; accountId: string }) => {
+      // The API takes accountId as a query parameter on DELETE.
+      return zernioRequest("DELETE", `/v1/inbox/conversations/${args.conversationId}/messages/${args.messageId}`, undefined, {
+        accountId: args.accountId,
+      });
     },
   },
 ];

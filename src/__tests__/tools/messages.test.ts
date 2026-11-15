@@ -18,6 +18,15 @@ describe("messageTools", () => {
     expect(messageTools).toHaveLength(10);
   });
 
+  it("requires accountId on every conversation-scoped tool (the API requires it)", () => {
+    for (const tool of messageTools) {
+      if (tool.name === "zernio_list_conversations") continue;
+      const shape = (tool.inputSchema as unknown as { shape: Record<string, { isOptional(): boolean }> }).shape;
+      expect(shape.accountId, tool.name).toBeDefined();
+      expect(shape.accountId.isOptional(), tool.name).toBe(false);
+    }
+  });
+
   it("has no duplicate tool names", () => {
     const names = messageTools.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
@@ -147,23 +156,36 @@ describe("messageTools", () => {
       expect(tool.description).toBeTruthy();
     });
 
-    it("calls zernioRequest correctly", async () => {
-      await tool.handler({
+    it("sends participantId (the spec's field) when given", async () => {
+      await tool.handler({ accountId: "acc-1", participantId: "15551234567", message: "Hi there" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/inbox/conversations", {
         accountId: "acc-1",
-        contactId: "contact-1",
-        recipientId: "recip-1",
+        participantId: "15551234567",
         message: "Hi there",
       });
-      expect(mockRequest).toHaveBeenCalledWith(
-        "POST",
-        "/v1/inbox/conversations",
-        {
-          accountId: "acc-1",
-          contactId: "contact-1",
-          recipientId: "recip-1",
-          message: "Hi there",
-        }
-      );
+    });
+
+    it("sends participantUsername when given", async () => {
+      await tool.handler({ accountId: "acc-1", participantUsername: "@someone", message: "Hi there" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/inbox/conversations", {
+        accountId: "acc-1",
+        participantUsername: "@someone",
+        message: "Hi there",
+      });
+    });
+
+    it("requires exactly one of participantId or participantUsername", async () => {
+      await expect(tool.handler({ accountId: "acc-1", message: "Hi" })).rejects.toThrow(/exactly one/);
+      await expect(
+        tool.handler({ accountId: "acc-1", participantId: "1", participantUsername: "@a", message: "Hi" })
+      ).rejects.toThrow(/exactly one/);
+      expect(mockRequest).not.toHaveBeenCalled();
+    });
+
+    it("no longer accepts the old contactId/recipientId inputs", () => {
+      const shape = (tool.inputSchema as unknown as { shape: Record<string, unknown> }).shape;
+      expect(shape.contactId).toBeUndefined();
+      expect(shape.recipientId).toBeUndefined();
     });
   });
 
@@ -176,10 +198,11 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123" });
+      await tool.handler({ conversationId: "conv-123", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
-        "/v1/inbox/conversations/conv-123/typing"
+        "/v1/inbox/conversations/conv-123/typing",
+        { accountId: "acc-1" }
       );
     });
   });
@@ -198,11 +221,12 @@ describe("messageTools", () => {
         messageId: "msg-1",
         emoji: "👍",
         action: "add",
+        accountId: "acc-1",
       });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
         "/v1/inbox/conversations/conv-123/messages/msg-1/reactions",
-        { emoji: "👍" }
+        { accountId: "acc-1", emoji: "👍" }
       );
     });
 
@@ -212,11 +236,13 @@ describe("messageTools", () => {
         messageId: "msg-1",
         emoji: "👍",
         action: "remove",
+        accountId: "acc-1",
       });
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
         "/v1/inbox/conversations/conv-123/messages/msg-1/reactions",
-        { emoji: "👍" }
+        undefined,
+        { accountId: "acc-1" }
       );
     });
   });
@@ -230,12 +256,21 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", status: "read" });
+      await tool.handler({ conversationId: "conv-123", status: "archived", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "PUT",
         "/v1/inbox/conversations/conv-123",
-        { status: "read" }
+        { accountId: "acc-1", status: "archived" }
       );
+    });
+
+    it("accepts only the spec's statuses, active and archived", () => {
+      const base = { conversationId: "c", accountId: "a" };
+      expect(tool.inputSchema.safeParse({ ...base, status: "active" }).success).toBe(true);
+      expect(tool.inputSchema.safeParse({ ...base, status: "archived" }).success).toBe(true);
+      for (const old of ["read", "unread", "unarchived"]) {
+        expect(tool.inputSchema.safeParse({ ...base, status: old }).success).toBe(false);
+      }
     });
   });
 
@@ -248,12 +283,14 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", message: "Updated text" });
+      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", message: "Updated text", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "PATCH",
         "/v1/inbox/conversations/conv-123/messages/msg-1",
-        { message: "Updated text" }
+        { accountId: "acc-1", text: "Updated text" }
       );
+      // The spec's field is `text`; a `message` key would be ignored by the API.
+      expect(mockRequest.mock.calls[0][2]).not.toHaveProperty("message");
     });
   });
 
@@ -266,10 +303,12 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", messageId: "msg-1" });
+      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
-        "/v1/inbox/conversations/conv-123/messages/msg-1"
+        "/v1/inbox/conversations/conv-123/messages/msg-1",
+        undefined,
+        { accountId: "acc-1" }
       );
     });
   });
