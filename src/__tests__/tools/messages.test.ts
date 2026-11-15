@@ -18,6 +18,15 @@ describe("messageTools", () => {
     expect(messageTools).toHaveLength(10);
   });
 
+  it("requires accountId on every conversation-scoped tool (the API requires it)", () => {
+    for (const tool of messageTools) {
+      if (tool.name === "zernio_list_conversations") continue;
+      const shape = (tool.inputSchema as unknown as { shape: Record<string, { isOptional(): boolean }> }).shape;
+      expect(shape.accountId, tool.name).toBeDefined();
+      expect(shape.accountId.isOptional(), tool.name).toBe(false);
+    }
+  });
+
   it("has no duplicate tool names", () => {
     const names = messageTools.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
@@ -176,10 +185,11 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123" });
+      await tool.handler({ conversationId: "conv-123", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
-        "/v1/inbox/conversations/conv-123/typing"
+        "/v1/inbox/conversations/conv-123/typing",
+        { accountId: "acc-1" }
       );
     });
   });
@@ -198,11 +208,12 @@ describe("messageTools", () => {
         messageId: "msg-1",
         emoji: "👍",
         action: "add",
+        accountId: "acc-1",
       });
       expect(mockRequest).toHaveBeenCalledWith(
         "POST",
         "/v1/inbox/conversations/conv-123/messages/msg-1/reactions",
-        { emoji: "👍" }
+        { accountId: "acc-1", emoji: "👍" }
       );
     });
 
@@ -212,11 +223,13 @@ describe("messageTools", () => {
         messageId: "msg-1",
         emoji: "👍",
         action: "remove",
+        accountId: "acc-1",
       });
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
         "/v1/inbox/conversations/conv-123/messages/msg-1/reactions",
-        { emoji: "👍" }
+        undefined,
+        { accountId: "acc-1" }
       );
     });
   });
@@ -230,11 +243,11 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", status: "read" });
+      await tool.handler({ conversationId: "conv-123", status: "read", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "PUT",
         "/v1/inbox/conversations/conv-123",
-        { status: "read" }
+        { accountId: "acc-1", status: "read" }
       );
     });
   });
@@ -248,11 +261,11 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", message: "Updated text" });
+      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", message: "Updated text", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "PATCH",
         "/v1/inbox/conversations/conv-123/messages/msg-1",
-        { message: "Updated text" }
+        { accountId: "acc-1", message: "Updated text" }
       );
     });
   });
@@ -266,10 +279,12 @@ describe("messageTools", () => {
     });
 
     it("calls zernioRequest correctly", async () => {
-      await tool.handler({ conversationId: "conv-123", messageId: "msg-1" });
+      await tool.handler({ conversationId: "conv-123", messageId: "msg-1", accountId: "acc-1" });
       expect(mockRequest).toHaveBeenCalledWith(
         "DELETE",
-        "/v1/inbox/conversations/conv-123/messages/msg-1"
+        "/v1/inbox/conversations/conv-123/messages/msg-1",
+        undefined,
+        { accountId: "acc-1" }
       );
     });
   });
