@@ -385,9 +385,13 @@ export const accountTools = [
     inputSchema: z.object({
       accountId: z.string().describe("The Zernio Google Business account ID"),
       locationId: z.string().describe("The GMB location ID"),
+      readMask: z
+        .string()
+        .optional()
+        .describe("Comma-separated fields to return, e.g. 'regularHours,specialHours'. Available: name, title, phoneNumbers, categories, storefrontAddress, websiteUri, regularHours, specialHours, serviceArea, serviceItems, profile, openInfo, metadata, moreHours."),
     }),
-    handler: async (args: { accountId: string; locationId: string }) => {
-      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-location-details`, undefined, { locationId: args.locationId });
+    handler: async (args: { accountId: string; locationId: string; readMask?: string }) => {
+      return zernioRequest("GET", `/v1/accounts/${args.accountId}/gmb-location-details`, undefined, { locationId: args.locationId, readMask: args.readMask });
     },
   },
   {

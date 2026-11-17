@@ -692,9 +692,13 @@ describe("accountTools", () => {
 
     it("calls zernioRequest correctly", async () => {
       await tool.handler({ accountId: "acc-123", locationId: "loc-1" });
-      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1", readMask: undefined });
     });
 
+    it("passes readMask as a query parameter", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", readMask: "specialHours" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1", readMask: "specialHours" });
+    });
   });
 
   // 34. zernio_update_gmb_location_details

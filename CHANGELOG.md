@@ -5,6 +5,9 @@
 ### Fixed
 - `zernio_update_gmb_location_details` now matches Zernio's `PUT /v1/accounts/{accountId}/gmb-location-details` (Google `locations.patch`): `locationId` goes in the query string, `updateMask` is built from the fields given (or passed explicitly), and the fields use Google's shapes: `title`, `description` (sent as `profile.description`), `websiteUri`, `phoneNumbers`, `regularHours.periods[]`, `specialHours.specialHourPeriods[]`, `storefrontAddress` and `categories`. Times are checked as HH:MM and days as MONDAY..SUNDAY. The old `name`, `address`, `phone`, `hours` and `website` arguments are gone: the API never accepted them, so no call that used them could succeed (#25). A call with no fields is rejected before any request.
 
+### Added
+- `zernio_get_gmb_location_details` takes an optional `readMask` (e.g. `regularHours,specialHours`) to return only those fields.
+
 ## 2.2.1 (2026-11-16)
 
 ### Security
