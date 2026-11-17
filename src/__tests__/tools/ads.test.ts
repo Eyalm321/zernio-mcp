@@ -40,9 +40,31 @@ describe("adsTools", () => {
       expect(tool.inputSchema).toBeDefined();
     });
 
-    it("calls zernioRequest correctly", async () => {
-      await tool.handler({} as any);
-      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/ads/accounts");
+    it("sends the required accountId as a query parameter", async () => {
+      await tool.handler({ accountId: "acc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/ads/accounts", undefined, {
+        accountId: "acc-1",
+        adAccountId: undefined,
+        limit: undefined,
+        inScopeOnly: undefined,
+        live: undefined,
+      });
+    });
+
+    it("passes the optional filters", async () => {
+      await tool.handler({ accountId: "acc-1", adAccountId: "act_123", limit: 5, inScopeOnly: true, live: true });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/ads/accounts", undefined, {
+        accountId: "acc-1",
+        adAccountId: "act_123",
+        limit: 5,
+        inScopeOnly: true,
+        live: true,
+      });
+    });
+
+    it("schema requires accountId", () => {
+      expect(tool.inputSchema.safeParse({}).success).toBe(false);
+      expect(tool.inputSchema.safeParse({ accountId: "acc-1" }).success).toBe(true);
     });
   });
 
