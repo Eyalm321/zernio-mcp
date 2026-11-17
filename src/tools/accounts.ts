@@ -1,6 +1,35 @@
 import { z } from "zod";
 import { zernioRequest } from "../client.js";
 
+const timeOfDay = z.string().regex(/^(([01]\d|2[0-3]):[0-5]\d|24:00)$/, "HH:MM, 24-hour");
+const weekDay = z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]);
+const calendarDate = z.object({ year: z.number().int(), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31) });
+const hoursPeriod = z.object({ openDay: weekDay, openTime: timeOfDay, closeDay: weekDay, closeTime: timeOfDay });
+const specialHourPeriod = z.object({
+  startDate: calendarDate,
+  endDate: calendarDate.optional(),
+  openTime: timeOfDay.optional(),
+  closeTime: timeOfDay.optional(),
+  closed: z.boolean().optional(),
+});
+
+type GmbLocationDetailsArgs = {
+  accountId: string;
+  locationId?: string;
+  title?: string;
+  description?: string;
+  websiteUri?: string;
+  phoneNumbers?: { primaryPhone?: string; additionalPhones?: string[] };
+  regularHours?: { periods: z.infer<typeof hoursPeriod>[] };
+  specialHours?: { specialHourPeriods: z.infer<typeof specialHourPeriod>[] };
+  storefrontAddress?: Record<string, unknown>;
+  categories?: Record<string, unknown>;
+  updateMask?: string;
+};
+
+// Google locations.patch fields this tool can set, in updateMask order.
+const GMB_LOCATION_FIELDS = ["title", "description", "websiteUri", "phoneNumbers", "regularHours", "specialHours", "storefrontAddress", "categories"] as const;
+
 export const accountTools = [
   {
     name: "zernio_list_accounts",
@@ -363,19 +392,55 @@ export const accountTools = [
   },
   {
     name: "zernio_update_gmb_location_details",
-    description: "Update details for a Google My Business location (name, address, phone, hours, website, description).",
+    description:
+      "Update a Google Business Profile location (proxies Google's locations.patch). Pass only the fields to change; updateMask is built from them. " +
+      "regularHours and specialHours replace the whole list on Google, so send every period you want to keep. " +
+      "Times are HH:MM (24h); days are MONDAY..SUNDAY. A special-hours day with closed=true needs only startDate.",
     inputSchema: z.object({
       accountId: z.string().describe("The Zernio Google Business account ID"),
-      locationId: z.string().describe("The GMB location ID"),
-      name: z.string().optional().describe("Updated business name"),
-      address: z.string().optional().describe("Updated business address"),
-      phone: z.string().optional().describe("Updated phone number"),
-      hours: z.string().optional().describe("Updated business hours (JSON string)"),
-      website: z.string().optional().describe("Updated website URL"),
-      description: z.string().optional().describe("Updated business description"),
+      locationId: z.string().optional().describe("The GMB location ID (from zernio_get_gmb_locations). Omit to use the account's selected location."),
+      title: z.string().optional().describe("Business name (updateMask: title)"),
+      description: z.string().optional().describe("Business description (updateMask: profile.description)"),
+      websiteUri: z.string().optional().describe("Website URL (updateMask: websiteUri)"),
+      phoneNumbers: z
+        .object({
+          primaryPhone: z.string().optional(),
+          additionalPhones: z.array(z.string()).optional(),
+        })
+        .optional()
+        .describe("Phone numbers; replaces both primary and additional numbers (updateMask: phoneNumbers)"),
+      regularHours: z
+        .object({ periods: z.array(hoursPeriod) })
+        .optional()
+        .describe("Weekly opening hours; replaces all periods (updateMask: regularHours)"),
+      specialHours: z
+        .object({ specialHourPeriods: z.array(specialHourPeriod) })
+        .optional()
+        .describe("Holiday or one-off hours; replaces all special periods (updateMask: specialHours)"),
+      storefrontAddress: z.record(z.string(), z.unknown()).optional().describe("Google PostalAddress object (updateMask: storefrontAddress)"),
+      categories: z.record(z.string(), z.unknown()).optional().describe("{ primaryCategory: { name }, additionalCategories: [{ name }] } (updateMask: categories)"),
+      updateMask: z.string().optional().describe("Override the computed updateMask (comma-separated Google field paths)"),
     }),
-    handler: async (args: { accountId: string; locationId: string; name?: string; address?: string; phone?: string; hours?: string; website?: string; description?: string }) => {
-      return zernioRequest("PUT", `/v1/accounts/${args.accountId}/gmb-location-details`, { locationId: args.locationId, name: args.name, address: args.address, phone: args.phone, hours: args.hours, website: args.website, description: args.description });
+    handler: async (args: GmbLocationDetailsArgs) => {
+      const { accountId, locationId, updateMask } = args;
+      const body: Record<string, unknown> = {};
+      const mask: string[] = [];
+      for (const key of GMB_LOCATION_FIELDS) {
+        const value = args[key];
+        if (value === undefined) continue;
+        if (key === "description") {
+          body.profile = { description: value };
+          mask.push("profile.description");
+        } else {
+          body[key] = value;
+          mask.push(key);
+        }
+      }
+      if (mask.length === 0) {
+        throw new Error("Pass at least one field to update (title, description, websiteUri, phoneNumbers, regularHours, specialHours, storefrontAddress, categories).");
+      }
+      body.updateMask = updateMask ?? mask.join(",");
+      return zernioRequest("PUT", `/v1/accounts/${accountId}/gmb-location-details`, body, { locationId });
     },
   },
   {
