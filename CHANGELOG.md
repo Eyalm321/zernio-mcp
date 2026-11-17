@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- `zernio_list_ad_accounts` takes the `accountId` the API requires (`GET /v1/ads/accounts`), so it no longer always fails with 400 `accountId is required`. It also takes the optional `adAccountId`, `limit`, `inScopeOnly` and `live` filters.
 - `zernio_update_gmb_location_details` now matches Zernio's `PUT /v1/accounts/{accountId}/gmb-location-details` (Google `locations.patch`): `locationId` goes in the query string, `updateMask` is built from the fields given (or passed explicitly), and the fields use Google's shapes: `title`, `description` (sent as `profile.description`), `websiteUri`, `phoneNumbers`, `regularHours.periods[]`, `specialHours.specialHourPeriods[]`, `storefrontAddress` and `categories`. Times are checked as HH:MM and days as MONDAY..SUNDAY. The old `name`, `address`, `phone`, `hours` and `website` arguments are gone: the API never accepted them, so no call that used them could succeed (#25). A call with no fields is rejected before any request.
 
 ### Added
