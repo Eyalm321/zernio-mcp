@@ -99,7 +99,7 @@ Then configure Claude Desktop:
 | `zernio_get_gmb_locations` | List Google Business Profile locations |
 | `zernio_get_gmb_reviews` | Get Google Business reviews |
 | `zernio_get_gmb_location_details` | Get GMB location details (hours, address, etc.) |
-| `zernio_update_gmb_location_details` | Update GMB location details |
+| `zernio_update_gmb_location_details` | Update GMB location details (title, description, website, phones, regular and special hours, address, categories) |
 | `zernio_get_gmb_food_menus` | Get GMB restaurant food menus |
 | `zernio_update_gmb_food_menus` | Update GMB food menus |
 | `zernio_get_gmb_media` | List GMB location photos/videos |

@@ -692,7 +692,12 @@ describe("accountTools", () => {
 
     it("calls zernioRequest correctly", async () => {
       await tool.handler({ accountId: "acc-123", locationId: "loc-1" });
-      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1", readMask: undefined });
+    });
+
+    it("passes readMask as a query parameter", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", readMask: "specialHours" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/accounts/acc-123/gmb-location-details", undefined, { locationId: "loc-1", readMask: "specialHours" });
     });
   });
 
@@ -705,9 +710,54 @@ describe("accountTools", () => {
       expect(tool.description).toBeTruthy();
     });
 
-    it("calls zernioRequest correctly", async () => {
-      await tool.handler({ accountId: "acc-123", locationId: "loc-1", name: "My Biz", address: "123 Main St", phone: "555-1234", hours: '{"mon":"9-5"}', website: "https://example.com", description: "A business" });
-      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/accounts/acc-123/gmb-location-details", { locationId: "loc-1", name: "My Biz", address: "123 Main St", phone: "555-1234", hours: '{"mon":"9-5"}', website: "https://example.com", description: "A business" });
+    const path = "/v1/accounts/acc-123/gmb-location-details";
+
+    it("sends locationId as a query parameter and builds updateMask from the fields given", async () => {
+      const specialHours = { specialHourPeriods: [{ startDate: { year: 2026, month: 11, day: 26 }, closed: true }] };
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", specialHours });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", path, { specialHours, updateMask: "specialHours" }, { locationId: "loc-1" });
+    });
+
+    it("maps regularHours", async () => {
+      const regularHours = { periods: [{ openDay: "MONDAY", openTime: "09:00", closeDay: "MONDAY", closeTime: "17:00" }] };
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", regularHours } as any);
+      expect(mockRequest).toHaveBeenCalledWith("PUT", path, { regularHours, updateMask: "regularHours" }, { locationId: "loc-1" });
+    });
+
+    it("maps description to profile.description", async () => {
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", description: "A business" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", path, { profile: { description: "A business" }, updateMask: "profile.description" }, { locationId: "loc-1" });
+    });
+
+    it("maps title, websiteUri, phoneNumbers, storefrontAddress and categories in one call", async () => {
+      const phoneNumbers = { primaryPhone: "+1 757-555-0100" };
+      const storefrontAddress = { regionCode: "US", addressLines: ["1 Main St"] };
+      const categories = { primaryCategory: { name: "categories/gcid:clothing_store" } };
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", title: "My Biz", websiteUri: "https://example.com", phoneNumbers, storefrontAddress, categories });
+      expect(mockRequest).toHaveBeenCalledWith(
+        "PUT",
+        path,
+        { title: "My Biz", websiteUri: "https://example.com", phoneNumbers, storefrontAddress, categories, updateMask: "title,websiteUri,phoneNumbers,storefrontAddress,categories" },
+        { locationId: "loc-1" },
+      );
+    });
+
+    it("uses an explicit updateMask when given", async () => {
+      await tool.handler({ accountId: "acc-123", title: "My Biz", updateMask: "title" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", path, { title: "My Biz", updateMask: "title" }, { locationId: undefined });
+    });
+
+    it("rejects a call with no fields to update", async () => {
+      await expect(tool.handler({ accountId: "acc-123", locationId: "loc-1" })).rejects.toThrow(/at least one field/);
+      expect(mockRequest).not.toHaveBeenCalled();
+    });
+
+    it("schema rejects times that are not HH:MM and unknown days", () => {
+      const period = (openTime: string, openDay = "MONDAY") => ({ accountId: "a", regularHours: { periods: [{ openDay, openTime, closeDay: "MONDAY", closeTime: "17:00" }] } });
+      expect(tool.inputSchema.safeParse(period("09:00")).success).toBe(true);
+      expect(tool.inputSchema.safeParse(period("9am")).success).toBe(false);
+      expect(tool.inputSchema.safeParse(period("25:00")).success).toBe(false);
+      expect(tool.inputSchema.safeParse(period("09:00", "MON")).success).toBe(false);
     });
   });
 
