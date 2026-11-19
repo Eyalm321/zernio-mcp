@@ -4,10 +4,22 @@ import { zernioRequest } from "../client.js";
 export const adsTools = [
   {
     name: "zernio_list_ad_accounts",
-    description: "List all connected ad accounts (Facebook Ads, etc.) with their IDs and status.",
-    inputSchema: z.object({}),
-    handler: async (_args: Record<string, never>) => {
-      return zernioRequest("GET", "/v1/ads/accounts");
+    description: "List the ad accounts (Meta, Google, TikTok, LinkedIn, X, Reddit, Pinterest) reachable through one connected Zernio account, with their IDs and status.",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID of the ads connection (from zernio_list_accounts)"),
+      adAccountId: z.string().optional().describe("Return only this platform ad account (e.g. act_123 for Meta)"),
+      limit: z.number().int().min(1).max(1000).optional().describe("Maximum number of ad accounts to return"),
+      inScopeOnly: z.boolean().optional().describe("true: only ad accounts this connection accepts as adAccountId on the other ads tools"),
+      live: z.boolean().optional().describe("true: list live from the platform instead of Zernio's stored catalog"),
+    }),
+    handler: async (args: { accountId: string; adAccountId?: string; limit?: number; inScopeOnly?: boolean; live?: boolean }) => {
+      return zernioRequest("GET", "/v1/ads/accounts", undefined, {
+        accountId: args.accountId,
+        adAccountId: args.adAccountId,
+        limit: args.limit,
+        inScopeOnly: args.inScopeOnly,
+        live: args.live,
+      });
     },
   },
   {

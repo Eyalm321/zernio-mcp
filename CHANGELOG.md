@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- `zernio_list_ad_accounts` takes the `accountId` the API requires (`GET /v1/ads/accounts`), so it no longer always fails with 400 `accountId is required`. It also takes the optional `adAccountId`, `limit`, `inScopeOnly` and `live` filters.
+
 ## 2.3.0 (2026-11-17)
 
 ### Fixed
