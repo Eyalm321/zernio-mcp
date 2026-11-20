@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Fixed
-- `zernio_get_post_comments` pages: it takes `limit` (1-100, default 25) and `cursor`, so threads longer than one page can be read in full (#3). It also takes the API's `commentId` (replies to one comment), `subreddit` and `view` (`summary`) parameters.
+- `zernio_get_post_comments` pages: it takes `limit` (1-100, default 25) and `cursor`, so threads longer than one page can be read in full (#32). It also takes the API's `commentId` (replies to one comment), `subreddit` and `view` (`summary`) parameters.
 
 ## 2.3.1 (2026-11-18)
 
