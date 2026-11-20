@@ -40,12 +40,15 @@
     "url": "https://github.com/Eyalm321/zernio-mcp/issues"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
+    "@types/node": "^22.20.5",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
     "vitest": "^5.1.0"
