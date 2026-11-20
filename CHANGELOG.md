@@ -5,6 +5,9 @@
 ### Added
 - `zernio_sync_external_post` (`POST /v1/posts/sync-external`) and `zernio_get_post_metrics` (`GET /v1/metrics/posts`): pull a post made outside Zernio, such as a Facebook reel shared by hand, and read its metrics, which `zernio_get_post_analytics` did not show (#31).
 
+### Changed
+- `zernio_create_post` refuses a facebook.com / fb.watch link in the text of a Facebook target before publishing. Facebook rejects such posts (Graph 1609008) and has no reshare API, so the post used to fail after counting against usage; the tool description now says so (#30).
+
 ## 2.3.1 (2026-11-18)
 
 ### Fixed
