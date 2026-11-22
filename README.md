@@ -206,7 +206,7 @@ Then configure Claude Desktop:
 | Tool | Description |
 |------|-------------|
 | `zernio_list_commented_posts` | List posts with comments |
-| `zernio_get_post_comments` | Get all comments on a post |
+| `zernio_get_post_comments` | Get one page of comments on a post (`limit`/`cursor`) |
 | `zernio_reply_to_comment` | Reply publicly to a comment |
 | `zernio_private_reply_to_comment` | Send a private reply to a commenter |
 | `zernio_like_comment` | Like a comment |

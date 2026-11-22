@@ -96,6 +96,7 @@ describe("commentTools", () => {
         limit: 100,
         cursor: "opaque==",
         commentId: "c-9",
+        subreddit: "r-test",
         view: "summary",
       });
       expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/inbox/comments/post-123", undefined, {
@@ -103,6 +104,7 @@ describe("commentTools", () => {
         limit: 100,
         cursor: "opaque==",
         commentId: "c-9",
+        subreddit: "r-test",
         view: "summary",
       });
     });
