@@ -49,15 +49,36 @@ export const commentTools = [
   {
     name: "zernio_get_post_comments",
     description:
-      "Get all comments on a specific post. Returns the full comment thread including replies, author names, timestamps, and comment IDs needed to reply or moderate.",
+      "Get one page of comments on a post, with replies, author names, timestamps and the comment IDs needed to reply or moderate. Pages hold up to `limit` comments (default 25, max 100). When the result has `pagination.hasMore: true`, call again with `cursor` set to `pagination.cursor` until it is false; a missing cursor means the last page.",
     inputSchema: z.object({
       postId: z.string().describe("The platform post ID (from zernio_list_commented_posts)"),
       accountId: z.string().describe("The Zernio account ID that owns the post"),
+      limit: z.number().int().min(1).max(100).optional().describe("Comments per page, 1-100 (default 25)"),
+      cursor: z
+        .string()
+        .optional()
+        .describe("`pagination.cursor` from the previous page, passed back verbatim"),
+      commentId: z
+        .string()
+        .optional()
+        .describe("Facebook, Instagram, Reddit, TikTok: get the replies to this comment instead of top-level comments"),
+      subreddit: z.string().optional().describe("Reddit only: subreddit name"),
+      view: z
+        .enum(["full", "summary"])
+        .optional()
+        .describe("summary: lighter comments, at most 3 nested replies each (repliesHasMore marks more; fetch them with commentId). Default full"),
     }),
-    handler: async (args: { postId: string; accountId: string }) => {
-      return zernioRequest("GET", `/v1/inbox/comments/${args.postId}`, undefined, {
-        accountId: args.accountId,
-      });
+    handler: async (args: {
+      postId: string;
+      accountId: string;
+      limit?: number;
+      cursor?: string;
+      commentId?: string;
+      subreddit?: string;
+      view?: "full" | "summary";
+    }) => {
+      const { postId, ...query } = args;
+      return zernioRequest("GET", `/v1/inbox/comments/${postId}`, undefined, query);
     },
   },
   {

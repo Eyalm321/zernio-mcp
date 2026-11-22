@@ -81,6 +81,28 @@ describe("commentTools", () => {
         { accountId: "acc-1" }
       );
     });
+
+    it("passes paging and reply params through", async () => {
+      await tool.handler({
+        postId: "post-123",
+        accountId: "acc-1",
+        limit: 100,
+        cursor: "opaque==",
+        commentId: "c-9",
+        view: "summary",
+      });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/inbox/comments/post-123", undefined, {
+        accountId: "acc-1",
+        limit: 100,
+        cursor: "opaque==",
+        commentId: "c-9",
+        view: "summary",
+      });
+    });
+
+    it("rejects a limit above the API maximum", () => {
+      expect(tool.inputSchema.safeParse({ postId: "p", accountId: "a", limit: 101 }).success).toBe(false);
+    });
   });
 
   describe("zernio_reply_to_comment", () => {

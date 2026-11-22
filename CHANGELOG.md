@@ -5,6 +5,9 @@
 ### Changed
 - Requires Node 22 or later (`engines.node >=22`); Node 20 reached end of life in April 2026. CI tests Node 22 and 24; the publish workflow's build and GitHub Packages jobs run on Node 22 (the npm job stays on Node 24 for trusted publishing). `@types/node` follows the lowest supported major (^22).
 
+### Fixed
+- `zernio_get_post_comments` pages: it takes `limit` (1-100, default 25) and `cursor`, so threads longer than one page can be read in full (#32). It also takes the API's `commentId` (replies to one comment), `subreddit` and `view` (`summary`) parameters.
+
 ## 2.3.1 (2026-11-18)
 
 ### Fixed
