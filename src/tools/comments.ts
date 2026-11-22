@@ -5,7 +5,7 @@ export const commentTools = [
   {
     name: "zernio_list_commented_posts",
     description:
-      "List posts that have comments across all connected social accounts. Returns posts with comment counts, sorted by most recent or most commented. Use this to see what content is getting engagement.",
+      "List posts that have comments across all connected social accounts. Returns posts with comment counts, sorted by latest comment date or by comment count. Use this to see what content is getting engagement.",
     inputSchema: z.object({
       platform: z
         .string()
@@ -23,9 +23,9 @@ export const commentTools = [
         .optional()
         .describe("ISO date string — only return posts with comments since this date"),
       sortBy: z
-        .enum(["recent", "mostCommented"])
+        .enum(["date", "comments"])
         .optional()
-        .describe("Sort order: recent (default) or mostCommented"),
+        .describe("Sort key: date (default) or comments (comment count)"),
       limit: z.number().optional().describe("Max number of posts to return (default 20)"),
     }),
     handler: async (args: {
