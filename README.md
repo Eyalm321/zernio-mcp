@@ -540,7 +540,7 @@ src/
 
 ## CI/CD
 
-- **CI**: Runs on every push and PR to `main` — builds and tests on Node 20 and 22
+- **CI**: Runs on every push and PR to `main` — builds and tests on Node 22 and 24
 - **Publish**: Automatically publishes to both npm and GitHub Packages when a GitHub release is created (requires `NPM_TOKEN` secret for npm; GitHub Packages uses `GITHUB_TOKEN` automatically)
 
 ---
