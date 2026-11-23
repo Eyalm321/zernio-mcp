@@ -23,9 +23,9 @@ export const reviewTools = [
         .optional()
         .describe("ISO date — only return reviews submitted after this date"),
       sortBy: z
-        .enum(["recent", "rating"])
+        .enum(["date", "rating"])
         .optional()
-        .describe("Sort by most recent (default) or by rating"),
+        .describe("Sort key: date (default) or rating"),
       limit: z.number().optional().describe("Max reviews to return (default 20)"),
     }),
     handler: async (args: {
