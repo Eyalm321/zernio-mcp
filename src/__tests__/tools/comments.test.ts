@@ -38,7 +38,7 @@ describe("commentTools", () => {
         accountId: "acc-1",
         minComments: 5,
         since: "2024-01-01",
-        sortBy: "mostCommented",
+        sortBy: "comments",
         limit: 10,
       });
       expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/inbox/comments", undefined, {
@@ -46,7 +46,7 @@ describe("commentTools", () => {
         accountId: "acc-1",
         minComments: 5,
         since: "2024-01-01",
-        sortBy: "mostCommented",
+        sortBy: "comments",
         limit: 10,
       });
     });
@@ -61,6 +61,13 @@ describe("commentTools", () => {
         sortBy: undefined,
         limit: undefined,
       });
+    });
+
+    it("accepts only the API sortBy values (date, comments)", () => {
+      expect(tool.inputSchema.safeParse({ sortBy: "date" }).success).toBe(true);
+      expect(tool.inputSchema.safeParse({ sortBy: "comments" }).success).toBe(true);
+      expect(tool.inputSchema.safeParse({ sortBy: "recent" }).success).toBe(false);
+      expect(tool.inputSchema.safeParse({ sortBy: "mostCommented" }).success).toBe(false);
     });
   });
 
@@ -80,6 +87,30 @@ describe("commentTools", () => {
         undefined,
         { accountId: "acc-1" }
       );
+    });
+
+    it("passes paging and reply params through", async () => {
+      await tool.handler({
+        postId: "post-123",
+        accountId: "acc-1",
+        limit: 100,
+        cursor: "opaque==",
+        commentId: "c-9",
+        subreddit: "r-test",
+        view: "summary",
+      });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/inbox/comments/post-123", undefined, {
+        accountId: "acc-1",
+        limit: 100,
+        cursor: "opaque==",
+        commentId: "c-9",
+        subreddit: "r-test",
+        view: "summary",
+      });
+    });
+
+    it("rejects a limit above the API maximum", () => {
+      expect(tool.inputSchema.safeParse({ postId: "p", accountId: "a", limit: 101 }).success).toBe(false);
     });
   });
 

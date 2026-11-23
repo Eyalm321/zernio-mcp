@@ -208,7 +208,7 @@ Then configure Claude Desktop:
 | Tool | Description |
 |------|-------------|
 | `zernio_list_commented_posts` | List posts with comments |
-| `zernio_get_post_comments` | Get all comments on a post |
+| `zernio_get_post_comments` | Get one page of comments on a post (`limit`/`cursor`) |
 | `zernio_reply_to_comment` | Reply publicly to a comment |
 | `zernio_private_reply_to_comment` | Send a private reply to a commenter |
 | `zernio_like_comment` | Like a comment |
@@ -542,7 +542,7 @@ src/
 
 ## CI/CD
 
-- **CI**: Runs on every push and PR to `main` — builds and tests on Node 20 and 22
+- **CI**: Runs on every push and PR to `main` — builds and tests on Node 22 and 24
 - **Publish**: Automatically publishes to both npm and GitHub Packages when a GitHub release is created (requires `NPM_TOKEN` secret for npm; GitHub Packages uses `GITHUB_TOKEN` automatically)
 
 ---

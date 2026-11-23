@@ -61,6 +61,12 @@ describe("reviewTools", () => {
         limit: undefined,
       });
     });
+
+    it("accepts only the API sortBy values (date, rating)", () => {
+      expect(tool.inputSchema.safeParse({ sortBy: "date" }).success).toBe(true);
+      expect(tool.inputSchema.safeParse({ sortBy: "rating" }).success).toBe(true);
+      expect(tool.inputSchema.safeParse({ sortBy: "recent" }).success).toBe(false);
+    });
   });
 
   describe("zernio_reply_to_review", () => {
