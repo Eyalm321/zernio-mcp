@@ -291,4 +291,43 @@ export const analyticsTools = [
       });
     },
   },
+  {
+    name: "zernio_sync_external_post",
+    description:
+      "Fetch an account's latest posts made outside Zernio (published directly on the platform) right now, instead of waiting for the background sync (~90 min). Give `url` or `postId` to locate one post and get its Zernio record; omit both to refresh the account's recent posts. Use it before reading metrics of a post made by hand, e.g. a Facebook reel shared from the app. Debounced per account (~15 s).",
+    inputSchema: z.object({
+      accountId: z.string().describe("The Zernio account ID whose posts to sync"),
+      url: z.string().optional().describe("The post URL to locate"),
+      postId: z.string().optional().describe("The platform post/media/video ID, instead of url"),
+    }),
+    handler: async (args: { accountId: string; url?: string; postId?: string }) => {
+      return zernioRequest("POST", "/v1/posts/sync-external", args);
+    },
+  },
+  {
+    name: "zernio_get_post_metrics",
+    description:
+      "Read synced metrics for published posts, both Zernio posts and posts made outside Zernio. Send exactly one scope: postId / platformPostId (up to 100 ids, missing ones in meta.missingIds), accountId (list, up to 25 accounts), profileId, or changedSince (change feed). One id with granularity=day gives a day-by-day series. include=retentionCurve,audienceTypes,... adds breakdowns where the platform reports them. Lists page with cursor = pagination.nextCursor.",
+    inputSchema: z.object({
+      postId: z.string().optional().describe("Comma-separated post IDs (Zernio or external), up to 100"),
+      platformPostId: z.string().optional().describe("Comma-separated platform post IDs (e.g. a Facebook post id), up to 100"),
+      accountId: z.string().optional().describe("Comma-separated account IDs, up to 25 (list)"),
+      profileId: z.string().optional().describe("One profile ID (list)"),
+      platform: z.string().optional().describe("Only with profileId, e.g. facebook"),
+      origin: z.enum(["all", "zernio", "external"]).optional().describe("Lists only: which posts (default all)"),
+      metrics: z.string().optional().describe("Comma-separated metric names (default every metric)"),
+      groupBy: z.string().optional().describe("post | dayOfWeek,hour | postAge | format"),
+      granularity: z.enum(["total", "day"]).optional().describe("day reads one post day by day (default total)"),
+      fromDate: z.string().optional().describe("First day, inclusive (YYYY-MM-DD, UTC)"),
+      toDate: z.string().optional().describe("Last day, inclusive (YYYY-MM-DD, UTC)"),
+      sort: z.string().optional().describe("e.g. published-desc, likes-desc, engagement-desc"),
+      include: z.string().optional().describe("Comma-separated: post, samples, authenticity, impressionSources, audienceTypes, audienceCountries, retentionCurve"),
+      changedSince: z.string().optional().describe("now (starting cursor) or the previous pagination.nextCursor"),
+      limit: z.number().int().min(1).max(100).optional().describe("Rows per page (default 50, max 100)"),
+      cursor: z.string().optional().describe("pagination.nextCursor of the previous page, with the same query"),
+    }),
+    handler: async (args: Record<string, string | number | undefined>) => {
+      return zernioRequest("GET", "/v1/metrics/posts", undefined, args);
+    },
+  },
 ];

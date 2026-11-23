@@ -15,7 +15,7 @@ describe("analyticsTools", () => {
   });
 
   it("exports 16 tools", () => {
-    expect(analyticsTools).toHaveLength(16);
+    expect(analyticsTools).toHaveLength(18);
   });
 
   it("has no duplicate tool names", () => {
@@ -582,6 +582,31 @@ describe("analyticsTools", () => {
         dateFrom: undefined,
         dateTo: undefined,
       });
+    });
+  });
+
+  describe("zernio_sync_external_post", () => {
+    const tool = analyticsTools.find((t) => t.name === "zernio_sync_external_post")!;
+    it("posts accountId + url to sync-external", async () => {
+      await tool.handler({ accountId: "acc-1", url: "https://www.facebook.com/reel/123" });
+      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/sync-external", {
+        accountId: "acc-1",
+        url: "https://www.facebook.com/reel/123",
+      });
+    });
+  });
+
+  describe("zernio_get_post_metrics", () => {
+    const tool = analyticsTools.find((t) => t.name === "zernio_get_post_metrics")!;
+    it("reads /v1/metrics/posts with the given scope", async () => {
+      await tool.handler({ platformPostId: "123_456", include: "retentionCurve" });
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/metrics/posts", undefined, {
+        platformPostId: "123_456",
+        include: "retentionCurve",
+      });
+    });
+    it("caps limit at 100", () => {
+      expect(tool.inputSchema.safeParse({ accountId: "a", limit: 101 }).success).toBe(false);
     });
   });
 });

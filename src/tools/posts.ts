@@ -19,6 +19,25 @@ const MIME_TYPES: Record<string, string> = {
   ".pdf": "application/pdf",
 };
 
+// Facebook refuses a facebook.com link in a Page post (Graph subcode 1609008) and
+// has no reshare API, so such a post always fails after counting against usage.
+const FACEBOOK_LINK = /\b(?:https?:\/\/)?(?:[\w-]+\.)*(?:facebook\.com|fb\.watch|fb\.me|fb\.com)\b/i;
+
+export function refuseFacebookLinks(
+  content: string | undefined,
+  platforms: Array<{ platform: string; customContent?: string }> | undefined
+): void {
+  for (const p of platforms ?? []) {
+    if (p.platform.toLowerCase() !== "facebook") continue;
+    const text = p.customContent ?? content ?? "";
+    if (FACEBOOK_LINK.test(text)) {
+      throw new Error(
+        "Facebook refuses facebook.com links in a Page post (Graph 1609008) and has no way to reshare an existing Facebook post through the API. Remove the link from the Facebook text (customContent), or share it by hand in Facebook."
+      );
+    }
+  }
+}
+
 export const postTools = [
   {
     name: "zernio_list_posts",
@@ -53,7 +72,7 @@ export const postTools = [
   {
     name: "zernio_create_post",
     description:
-      "Create a new social media post. Provide platforms as an array of {platform, accountId} objects and media as mediaItems [{type, url}]. Use zernio_upload_media_from_file to get publicUrls for local files.",
+      "Create a new social media post. Provide platforms as an array of {platform, accountId} objects and media as mediaItems [{type, url}]. Use zernio_upload_media_from_file to get publicUrls for local files. Facebook cannot reshare an existing Facebook post: a facebook.com / fb.watch link in the text of a Facebook target is refused (Graph 1609008), so this tool rejects it before publishing.",
     inputSchema: z.object({
       content: z.string().optional().describe("Post caption/text. Optional when media is attached."),
       title: z.string().optional().describe("Post title (used for YouTube, LinkedIn articles)"),
@@ -85,6 +104,7 @@ export const postTools = [
       scheduledFor?: string; publishNow?: boolean; isDraft?: boolean;
       tags?: string[]; timezone?: string;
     }) => {
+      refuseFacebookLinks(args.content, args.platforms);
       return zernioRequest("POST", "/v1/posts", {
         content: args.content,
         title: args.title,

@@ -5,7 +5,7 @@
 [![GitHub Package](https://img.shields.io/github/v/release/Eyalm321/zernio-mcp?label=github%20package)](https://github.com/Eyalm321/zernio-mcp/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude full access to the [Zernio](https://zernio.com) social media management API — **273 tools** covering posts, analytics, inbox, ads, contacts, WhatsApp Business, and more across 14+ platforms.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude full access to the [Zernio](https://zernio.com) social media management API — **275 tools** covering posts, analytics, inbox, ads, contacts, WhatsApp Business, and more across 14+ platforms.
 
 ## Quick Start
 
@@ -62,7 +62,7 @@ Then configure Claude Desktop:
 
 ---
 
-## Tools (273 total)
+## Tools (275 total)
 
 ### Accounts (42 tools)
 
@@ -141,11 +141,13 @@ Then configure Claude Desktop:
 | `zernio_list_media` | List uploaded media files |
 | `zernio_delete_media` | Delete a media file |
 
-### Analytics (16 tools)
+### Analytics (18 tools)
 
 | Tool | Description |
 |------|-------------|
 | `zernio_get_post_analytics` | Post metrics: impressions, reach, likes, shares, clicks |
+| `zernio_get_post_metrics` | Synced metrics for Zernio and external posts, by id, list, grouping or change feed |
+| `zernio_sync_external_post` | Pull posts made outside Zernio now (by URL or id) so their metrics can be read |
 | `zernio_get_follower_analytics` | Follower growth over time |
 | `zernio_get_best_times_to_post` | Optimal posting times based on engagement |
 | `zernio_get_daily_metrics` | Day-by-day impressions, reach, engagement |

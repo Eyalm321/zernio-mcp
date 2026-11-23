@@ -290,4 +290,23 @@ describe("postTools", () => {
     it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
     it("has a valid input schema", () => { expect(tool.inputSchema).toBeDefined(); });
   });
+
+  describe("zernio_create_post facebook links", () => {
+    const tool = postTools.find((t) => t.name === "zernio_create_post")!;
+    it("refuses a facebook.com link for a Facebook target, before any request", async () => {
+      mockRequest.mockClear();
+      for (const content of ["see https://www.facebook.com/groups/1/posts/2", "fb.watch/abc", "m.facebook.com/events/9"]) {
+        await expect(tool.handler({ content, platforms: [{ platform: "facebook", accountId: "a" }] })).rejects.toThrow(/1609008/);
+      }
+      await expect(tool.handler({ content: "hi", platforms: [{ platform: "Facebook", accountId: "a", customContent: "https://facebook.com/x" }] })).rejects.toThrow(/1609008/);
+      expect(mockRequest).not.toHaveBeenCalled();
+    });
+    it("allows the link for other platforms, or when the Facebook text drops it", async () => {
+      mockRequest.mockClear();
+      await tool.handler({ content: "https://facebook.com/x", platforms: [{ platform: "linkedin", accountId: "l" }] });
+      await tool.handler({ content: "https://facebook.com/x", platforms: [{ platform: "facebook", accountId: "a", customContent: "our news" }] });
+      await tool.handler({ content: "notfacebook.company.example", platforms: [{ platform: "facebook", accountId: "a" }] });
+      expect(mockRequest).toHaveBeenCalledTimes(3);
+    });
+  });
 });
