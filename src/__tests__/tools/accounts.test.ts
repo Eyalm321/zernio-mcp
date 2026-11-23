@@ -721,7 +721,28 @@ describe("accountTools", () => {
     it("maps regularHours", async () => {
       const regularHours = { periods: [{ openDay: "MONDAY", openTime: "09:00", closeDay: "MONDAY", closeTime: "17:00" }] };
       await tool.handler({ accountId: "acc-123", locationId: "loc-1", regularHours } as any);
-      expect(mockRequest).toHaveBeenCalledWith("PUT", path, { regularHours, updateMask: "regularHours" }, { locationId: "loc-1" });
+      const sent = { periods: [{ openDay: "MONDAY", openTime: { hours: 9 }, closeDay: "MONDAY", closeTime: { hours: 17 } }] };
+      expect(mockRequest).toHaveBeenCalledWith("PUT", path, { regularHours: sent, updateMask: "regularHours" }, { locationId: "loc-1" });
+    });
+
+    it("sends HH:MM times as Google TimeOfDay objects (minutes only when not 0, 24:00 as hours 24)", async () => {
+      const regularHours = { periods: [{ openDay: "SATURDAY", openTime: "09:30", closeDay: "SATURDAY", closeTime: "24:00" }, { openDay: "SUNDAY", openTime: "00:00", closeDay: "SUNDAY", closeTime: "17:45" }] };
+      const specialHours = { specialHourPeriods: [
+        { startDate: { year: 2026, month: 12, day: 24 }, openTime: "10:00", closeTime: "14:30" },
+        { startDate: { year: 2026, month: 12, day: 25 }, closed: true },
+      ] };
+      await tool.handler({ accountId: "acc-123", locationId: "loc-1", regularHours, specialHours } as any);
+      const body = mockRequest.mock.calls[0][2];
+      expect(body.regularHours.periods).toEqual([
+        { openDay: "SATURDAY", openTime: { hours: 9, minutes: 30 }, closeDay: "SATURDAY", closeTime: { hours: 24 } },
+        { openDay: "SUNDAY", openTime: { hours: 0 }, closeDay: "SUNDAY", closeTime: { hours: 17, minutes: 45 } },
+      ]);
+      expect(body.specialHours.specialHourPeriods).toEqual([
+        { startDate: { year: 2026, month: 12, day: 24 }, openTime: { hours: 10 }, closeTime: { hours: 14, minutes: 30 } },
+        { startDate: { year: 2026, month: 12, day: 25 }, closed: true },
+      ]);
+      expect(body.updateMask).toBe("regularHours,specialHours");
+      expect(JSON.stringify(body)).not.toMatch(/"\d\d:\d\d"/);
     });
 
     it("maps description to profile.description", async () => {
