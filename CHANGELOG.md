@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.4.1 (2026-11-22)
+
+### Fixed
+- `zernio_list_commented_posts` `sortBy` takes the API's values `date` or `comments`, and `zernio_list_reviews` `sortBy` takes `date` or `rating` (`/v1/inbox/comments`, `/v1/inbox/reviews`). The old `recent` and `mostCommented` names were not API values, so a sorted call could not sort as asked; they are now refused by the schema (#37).
+
 ## 2.4.0 (2026-11-22)
 
 ### Changed
