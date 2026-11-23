@@ -8,6 +8,9 @@
 ### Changed
 - `zernio_create_post` refuses a facebook.com / fb.watch link in the text of a Facebook target before publishing. Facebook rejects such posts (Graph 1609008) and has no reshare API, so the post used to fail after counting against usage; the tool description now says so (#30).
 
+
+### Fixed
+- `zernio_update_gmb_location_details` sends `regularHours` / `specialHours` times as Google `TimeOfDay` objects (`{hours, minutes}`); Google refused the `HH:MM` strings it passed through, so every hours update failed. The tool still takes `HH:MM`.
 ## 2.4.1 (2026-11-22)
 
 ### Fixed

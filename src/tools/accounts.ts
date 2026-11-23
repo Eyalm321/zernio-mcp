@@ -13,6 +13,21 @@ const specialHourPeriod = z.object({
   closed: z.boolean().optional(),
 });
 
+/** Google's TimeOfDay for an "HH:MM" string: {hours, minutes}, minutes left out when 0 ("24:00" -> {hours: 24}). */
+export function toTimeOfDay(hhmm: string): { hours: number; minutes?: number } {
+  const [h, m] = hhmm.split(":").map(Number);
+  return m ? { hours: h, minutes: m } : { hours: h };
+}
+
+/** The tool takes times as HH:MM; Google's locations.patch takes TimeOfDay objects and refuses strings. */
+function withTimeOfDay<T extends { openTime?: string; closeTime?: string }>(p: T) {
+  return {
+    ...p,
+    ...(p.openTime !== undefined && { openTime: toTimeOfDay(p.openTime) }),
+    ...(p.closeTime !== undefined && { closeTime: toTimeOfDay(p.closeTime) }),
+  };
+}
+
 type GmbLocationDetailsArgs = {
   accountId: string;
   locationId?: string;
@@ -435,6 +450,12 @@ export const accountTools = [
         if (key === "description") {
           body.profile = { description: value };
           mask.push("profile.description");
+        } else if (key === "regularHours") {
+          body.regularHours = { periods: args.regularHours!.periods.map(withTimeOfDay) };
+          mask.push(key);
+        } else if (key === "specialHours") {
+          body.specialHours = { specialHourPeriods: args.specialHours!.specialHourPeriods.map(withTimeOfDay) };
+          mask.push(key);
         } else {
           body[key] = value;
           mask.push(key);
