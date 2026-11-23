@@ -8,6 +8,11 @@
 ### Changed
 - `zernio_create_post` refuses a facebook.com / fb.watch link in the text of a Facebook target before publishing. Facebook rejects such posts (Graph 1609008) and has no reshare API, so the post used to fail after counting against usage; the tool description now says so (#30).
 
+## 2.4.1 (2026-11-22)
+
+### Fixed
+- `zernio_list_commented_posts` `sortBy` takes the API's values `date` or `comments`, and `zernio_list_reviews` `sortBy` takes `date` or `rating` (`/v1/inbox/comments`, `/v1/inbox/reviews`). The old `recent` and `mostCommented` names were not API values, so a sorted call could not sort as asked; they are now refused by the schema (#37).
+
 ## 2.4.0 (2026-11-22)
 
 ### Changed
