@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.5.0 (2026-11-23)
 
 ### Added
 - `zernio_sync_external_post` (`POST /v1/posts/sync-external`) and `zernio_get_post_metrics` (`GET /v1/metrics/posts`): pull a post made outside Zernio, such as a Facebook reel shared by hand, and read its metrics, which `zernio_get_post_analytics` did not show (#31).
