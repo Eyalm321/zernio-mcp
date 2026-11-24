@@ -5,7 +5,7 @@
 [![GitHub Package](https://img.shields.io/github/v/release/Eyalm321/zernio-mcp?label=github%20package)](https://github.com/Eyalm321/zernio-mcp/packages)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude full access to the [Zernio](https://zernio.com) social media management API — **275 tools** covering posts, analytics, inbox, ads, contacts, WhatsApp Business, and more across 14+ platforms.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that gives Claude full access to the [Zernio](https://zernio.com) social media management API — **276 tools** covering posts, analytics, inbox, ads, contacts, WhatsApp Business, and more across 14+ platforms.
 
 ## Quick Start
 
@@ -62,7 +62,7 @@ Then configure Claude Desktop:
 
 ---
 
-## Tools (275 total)
+## Tools (276 total)
 
 ### Accounts (42 tools)
 
@@ -111,7 +111,7 @@ Then configure Claude Desktop:
 | `zernio_create_gmb_place_action` | Create GMB action link |
 | `zernio_delete_gmb_place_action` | Delete GMB action link |
 
-### Posts & Media (25 tools)
+### Posts & Media (26 tools)
 
 | Tool | Description |
 |------|-------------|
@@ -136,6 +136,7 @@ Then configure Claude Desktop:
 | `zernio_get_post_logs` | Get activity logs for a post |
 | `zernio_get_publishing_logs` | Get publishing logs across all posts |
 | `zernio_upload_media` | Upload media by URL |
+| `zernio_upload_media_from_file` | Upload a local file to Zernio media storage and get its public URL |
 | `zernio_upload_media_direct` | Upload media file directly |
 | `zernio_get_media_presigned_url` | Get presigned URL for large uploads |
 | `zernio_list_media` | List uploaded media files |
@@ -366,9 +367,8 @@ The comment actions (reply, private reply, like, hide, unhide, delete) all take 
 | `zernio_delete_webhook` | Delete a webhook |
 | `zernio_update_webhook` | Update webhook settings |
 | `zernio_test_webhook` | Send a test webhook event |
-| `zernio_get_webhook_logs` | Get webhook delivery logs |
 
-### WhatsApp Business (44 tools)
+### WhatsApp Business (47 tools)
 
 | Tool | Description |
 |------|-------------|
