@@ -313,7 +313,7 @@ export const analyticsTools = [
       platformPostId: z.string().optional().describe("Comma-separated platform post IDs (e.g. a Facebook post id), up to 100"),
       accountId: z.string().optional().describe("Comma-separated account IDs, up to 25 (list)"),
       profileId: z.string().optional().describe("One profile ID (list)"),
-      platform: z.string().optional().describe("Only with profileId, e.g. facebook"),
+      platform: z.enum(["tiktok", "instagram", "facebook", "youtube", "linkedin", "twitter", "threads", "pinterest", "reddit", "bluesky", "googlebusiness", "telegram", "snapchat", "whatsapp", "discord", "slack"]).optional().describe("Only with profileId"),
       origin: z.enum(["all", "zernio", "external"]).optional().describe("Lists only: which posts (default all)"),
       metrics: z.string().optional().describe("Comma-separated metric names (default every metric)"),
       groupBy: z.string().optional().describe("post | dayOfWeek,hour | postAge | format"),
