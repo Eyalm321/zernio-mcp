@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- `zernio_bulk_upload_posts` works: it sent a JSON `{posts: [...]}` body, but `POST /v1/posts/bulk-upload` takes a CSV file (multipart/form-data), so it always failed. Its input changes to `rows` (one object per post, keys are the CSV columns: `post_content`, `platforms`, `profiles`, `schedule_time`, `tz`, `is_draft`, `custom_content_<platform>`, ...) or `csvPath` (a local CSV), plus `dryRun`. A facebook.com / fb.watch link in a row's Facebook text is refused before upload, as in `zernio_create_post`.
+
 ## 2.5.0 (2026-11-23)
 
 ### Added

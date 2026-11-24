@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { zernioRequest } from "../client.js";
+import { zernioRequest, zernioMultipart } from "../client.js";
 
 describe("zernioRequest", () => {
   const mockFetch = vi.fn();
@@ -118,5 +118,37 @@ describe("zernioRequest", () => {
     await expect(zernioRequest("GET", "/v1/test")).rejects.toThrow(
       "Zernio API error 500:"
     );
+  });
+});
+
+describe("zernioMultipart", () => {
+  const mockFetch = vi.fn();
+  const key = "test-api-key";
+  beforeEach(() => {
+    vi.stubGlobal("fetch", mockFetch);
+    vi.stubEnv("ZERNIO_API_KEY", key);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("posts the form with auth, no JSON content type, and the query", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, status: 207, json: async () => ({ total: 2 }) });
+    const form = new FormData();
+    form.append("file", new Blob(["a\r\n"], { type: "text/csv" }), "p.csv");
+    expect(await zernioMultipart("/v1/posts/bulk-upload", form, { dryRun: true, skip: undefined })).toEqual({ total: 2 });
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe("https://zernio.com/api/v1/posts/bulk-upload?dryRun=true");
+    expect(init.method).toBe("POST");
+    expect(Object.keys(init.headers)).toEqual(["Authorization"]);
+    expect(init.headers.Authorization.endsWith(key)).toBe(true);
+    expect(init.body).toBe(form);
+  });
+
+  it("throws the API error text", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 400, text: async () => "too many rows" });
+    await expect(zernioMultipart("/v1/posts/bulk-upload", new FormData())).rejects.toThrow("Zernio API error 400: too many rows");
   });
 });

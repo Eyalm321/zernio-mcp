@@ -2,16 +2,22 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../../client.js", () => ({
   zernioRequest: vi.fn().mockResolvedValue({ success: true }),
+  zernioMultipart: vi.fn().mockResolvedValue({ total: 1, valid: 1, invalid: 0, results: [], warnings: [] }),
 }));
 
-import { zernioRequest } from "../../client.js";
-import { postTools } from "../../tools/posts.js";
+import { writeFileSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { zernioRequest, zernioMultipart } from "../../client.js";
+import { postTools, toCsv, parseCsvRecords } from "../../tools/posts.js";
 
 const mockRequest = vi.mocked(zernioRequest);
+const mockMultipart = vi.mocked(zernioMultipart);
 
 describe("postTools", () => {
   beforeEach(() => {
     mockRequest.mockClear();
+    mockMultipart.mockClear();
   });
 
   it("exports 26 tools", () => {
@@ -217,14 +223,69 @@ describe("postTools", () => {
 
   describe("zernio_bulk_upload_posts", () => {
     const tool = postTools.find((t) => t.name === "zernio_bulk_upload_posts")!;
-    it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
-    it("calls zernioRequest correctly", async () => {
-      const posts = [
-        { accountIds: ["acc-1"], content: "Post 1", scheduledAt: "2024-12-01T10:00:00Z", mediaIds: undefined, tags: undefined },
-        { accountIds: ["acc-2"], content: "Post 2", scheduledAt: undefined, mediaIds: ["m-1"], tags: ["tag1"] },
-      ];
-      await tool.handler({ posts });
-      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/bulk-upload", { posts });
+    const sentCsv = async () => {
+      const [path, form, params] = mockMultipart.mock.calls[0];
+      return { path, params, file: (form as FormData).get("file") as File };
+    };
+    it("uploads rows as a CSV file with dryRun", async () => {
+      await tool.handler({
+        rows: [
+          { post_content: 'Hello, "world"', platforms: "instagram", profiles: "P", schedule_time: "2026-09-01 10:00", tz: "America/New_York" },
+          { post_content: "Two", platforms: "linkedin", profiles: "P", is_draft: true },
+        ],
+        dryRun: true,
+      });
+      expect(mockRequest).not.toHaveBeenCalled();
+      const { path, params, file } = await sentCsv();
+      expect(path).toBe("/v1/posts/bulk-upload");
+      expect(params).toEqual({ dryRun: true });
+      expect(file.name).toBe("posts.csv");
+      expect(await file.text()).toBe(
+        'post_content,platforms,profiles,schedule_time,tz,is_draft\r\n"Hello, ""world""",instagram,P,2026-09-01 10:00,America/New_York,\r\nTwo,linkedin,P,,,true\r\n'
+      );
+    });
+    it("uploads a CSV file as given", async () => {
+      const dir = mkdtempSync(join(tmpdir(), "zbulk-"));
+      const f = join(dir, "week.csv");
+      writeFileSync(f, "post_content,platforms,profiles,is_draft\nhi,instagram,P,true\n");
+      await tool.handler({ csvPath: f });
+      const { file } = await sentCsv();
+      expect(file.name).toBe("week.csv");
+      expect(await file.text()).toBe("post_content,platforms,profiles,is_draft\nhi,instagram,P,true\n");
+    });
+    it("refuses a facebook.com link in a Facebook row, naming the row, before uploading", async () => {
+      await expect(tool.handler({ rows: [
+        { post_content: "ok", platforms: "facebook", profiles: "P", is_draft: true },
+        { post_content: "https://www.facebook.com/x/posts/1", platforms: "instagram, facebook", profiles: "P", is_draft: true },
+      ] })).rejects.toThrow(/Row 2: .*1609008/);
+      await expect(tool.handler({ rows: [{ post_content: "x", custom_content_facebook: "fb.watch/a", platforms: "facebook", profiles: "P", is_draft: true }] })).rejects.toThrow(/1609008/);
+      const dir = mkdtempSync(join(tmpdir(), "zbulk-"));
+      const f = join(dir, "fb.csv");
+      writeFileSync(f, 'post_content,platforms,profiles,is_draft\n"see https://facebook.com/a, now",facebook,P,true\n');
+      await expect(tool.handler({ csvPath: f })).rejects.toThrow(/Row 1: .*1609008/);
+      expect(mockMultipart).not.toHaveBeenCalled();
+    });
+    it("lets a facebook.com link through for other platforms or own Facebook text", async () => {
+      await tool.handler({ rows: [
+        { post_content: "https://facebook.com/x", platforms: "linkedin", profiles: "P", is_draft: true },
+        { post_content: "https://facebook.com/x", custom_content_facebook: "our news", platforms: "facebook,linkedin", profiles: "P", is_draft: true },
+      ] });
+      expect(mockMultipart).toHaveBeenCalledTimes(1);
+    });
+    it("needs exactly one of rows or csvPath, and at least one row", async () => {
+      await expect(tool.handler({})).rejects.toThrow(/exactly one/);
+      await expect(tool.handler({ rows: [{ a: "1" }], csvPath: "/x.csv" })).rejects.toThrow(/exactly one/);
+      await expect(tool.handler({ rows: [] })).rejects.toThrow(/No rows/);
+    });
+  });
+
+  describe("CSV helpers", () => {
+    it("round-trips quotes, commas and line breaks", () => {
+      const rows = [{ a: 'x "q"', b: "1,2", c: "line\nbreak" }, { a: "plain", b: "", c: "" }];
+      expect(parseCsvRecords(toCsv(rows))).toEqual(rows);
+    });
+    it("reads a BOM, CRLF and blank lines", () => {
+      expect(parseCsvRecords("\uFEFFa,b\r\n1,2\r\n\r\n3,4")).toEqual([{ a: "1", b: "2" }, { a: "3", b: "4" }]);
     });
   });
 

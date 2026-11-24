@@ -126,7 +126,7 @@ Then configure Claude Desktop:
 | `zernio_edit_published_post` | Edit an already-published post |
 | `zernio_unpublish_post` | Remove a published post |
 | `zernio_update_post_metadata` | Update post tags and labels |
-| `zernio_bulk_upload_posts` | Bulk create posts from a list |
+| `zernio_bulk_upload_posts` | Bulk create posts through the CSV upload (rows or a local CSV, with dry run) |
 | `zernio_list_post_queue` | Get the scheduled post queue |
 | `zernio_list_post_labels` | List all post labels/tags |
 | `zernio_get_post_approval_status` | Get post approval status |

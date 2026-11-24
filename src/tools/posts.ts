@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { readFileSync } from "node:fs";
 import { basename, extname } from "node:path";
-import { zernioRequest } from "../client.js";
+import { zernioRequest, zernioMultipart } from "../client.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
@@ -36,6 +36,48 @@ export function refuseFacebookLinks(
       );
     }
   }
+}
+
+// CSV for the bulk upload: header is every column any row uses, in first-seen order; a field with a comma,
+// quote or line break is quoted with its quotes doubled (RFC 4180).
+export function toCsv(rows: Array<Record<string, string | number | boolean>>): string {
+  const cols: string[] = [];
+  for (const r of rows) for (const k of Object.keys(r)) if (!cols.includes(k)) cols.push(k);
+  const cell = (v: unknown) => {
+    const s = v === undefined || v === null ? "" : String(v);
+    return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  return [cols.map(cell).join(","), ...rows.map((r) => cols.map((c) => cell(r[c])).join(","))].join("\r\n") + "\r\n";
+}
+
+// Reads a CSV with a header row into one object per data row (RFC 4180 quoting), so the facebook-link
+// check also covers a file the caller hands in.
+export function parseCsvRecords(text: string): Array<Record<string, string>> {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"' && field === "") quoted = true;
+    else if (ch === ",") { row.push(field); field = ""; }
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); field = "";
+      if (row.some((f) => f !== "")) rows.push(row);
+      row = [];
+    } else field += ch;
+  }
+  row.push(field);
+  if (row.some((f) => f !== "")) rows.push(row);
+  const [header, ...data] = rows;
+  if (!header) return [];
+  const keys = header.map((h, i) => (i === 0 ? h.replace(/^\uFEFF/, "") : h).trim());
+  return data.map((r) => Object.fromEntries(keys.map((k, i) => [k, r[i] ?? ""])));
 }
 
 export const postTools = [
@@ -289,18 +331,36 @@ export const postTools = [
   },
   {
     name: "zernio_bulk_upload_posts",
-    description: "Create multiple social media posts at once in bulk.",
+    description:
+      "Create many posts at once through Zernio's CSV bulk upload. Give rows (one object per post, keys are CSV columns) or csvPath (a local .csv). Required per row: platforms, profiles, a schedule (schedule_time with tz, publish_now=true, use_queue=true or is_draft=true) and post_content, title or media_urls. Per-platform columns: schedule_time_<platform>, custom_content_<platform>, custom_media_<platform>. Unknown columns come back in warnings. Up to 5000 rows. dryRun=true validates without creating. A facebook.com / fb.watch link in a row's Facebook text is refused (Graph 1609008) before upload.",
     inputSchema: z.object({
-      posts: z.array(z.object({
-        accountIds: z.array(z.string()).describe("List of account IDs to post to"),
-        content: z.string().describe("The post text content"),
-        scheduledAt: z.string().optional().describe("ISO datetime to schedule the post"),
-        mediaIds: z.array(z.string()).optional().describe("List of media IDs to attach"),
-        tags: z.array(z.string()).optional().describe("Tags to label the post"),
-      })).describe("Array of posts to create"),
+      rows: z
+        .array(z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])))
+        .optional()
+        .describe('One object per post, e.g. {post_content: "Hello", platforms: "instagram,facebook", profiles: "MyProfile", schedule_time: "2026-09-01 10:00", tz: "America/New_York"}'),
+      csvPath: z.string().optional().describe("Absolute path to a CSV file with a header row (instead of rows)"),
+      dryRun: z.boolean().optional().describe("Validate every row without creating posts"),
     }),
-    handler: async (args: { posts: Array<{ accountIds: string[]; content: string; scheduledAt?: string; mediaIds?: string[]; tags?: string[] }> }) => {
-      return zernioRequest("POST", "/v1/posts/bulk-upload", { posts: args.posts });
+    handler: async (args: { rows?: Array<Record<string, string | number | boolean>>; csvPath?: string; dryRun?: boolean }) => {
+      if (!!args.rows === !!args.csvPath) throw new Error("Give exactly one of rows or csvPath");
+      const csv = args.rows ? toCsv(args.rows) : readFileSync(args.csvPath!, "utf8");
+      const records = args.rows
+        ? args.rows.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, String(v)])))
+        : parseCsvRecords(csv);
+      if (records.length === 0) throw new Error("No rows to upload");
+      if (records.length > 5000) throw new Error(`Zernio takes at most 5000 rows per upload (got ${records.length})`);
+      records.forEach((row, i) => {
+        const platforms = (row.platforms ?? "").toLowerCase().split(/[\s,;|]+/);
+        if (!platforms.includes("facebook")) return;
+        try {
+          refuseFacebookLinks(row.post_content || row.content, [{ platform: "facebook", customContent: row.custom_content_facebook }]);
+        } catch (e) {
+          throw new Error(`Row ${i + 1}: ${(e as Error).message}`);
+        }
+      });
+      const form = new FormData();
+      form.append("file", new Blob([csv], { type: "text/csv" }), args.csvPath ? basename(args.csvPath) : "posts.csv");
+      return zernioMultipart("/v1/posts/bulk-upload", form, { dryRun: args.dryRun });
     },
   },
   {

@@ -42,3 +42,25 @@ export async function zernioRequest<T>(
 
   return res.json() as Promise<T>;
 }
+
+// For the endpoints that take a file (multipart/form-data): fetch sets the boundary header itself.
+export async function zernioMultipart<T>(
+  path: string,
+  form: FormData,
+  params?: Record<string, string | number | boolean | undefined>
+): Promise<T> {
+  const url = new URL(`${BASE_URL}${path}`);
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, String(value));
+  }
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getApiKey()}` },
+    body: form,
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Zernio API error ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<T>;
+}
