@@ -29,7 +29,8 @@ export function refuseFacebookLinks(
 ): void {
   for (const p of platforms ?? []) {
     if (p.platform.toLowerCase() !== "facebook") continue;
-    const text = p.customContent ?? content ?? "";
+    // An empty customContent falls back to the post text, as it does when Zernio publishes.
+    const text = p.customContent || content || "";
     if (FACEBOOK_LINK.test(text)) {
       throw new Error(
         "Facebook refuses facebook.com links in a Page post (Graph 1609008) and has no way to reshare an existing Facebook post through the API. Remove the link from the Facebook text (customContent), or share it by hand in Facebook."
@@ -138,7 +139,7 @@ export const postTools = [
   },
   {
     name: "zernio_update_post",
-    description: "Update a draft or scheduled post's content, schedule, or media.",
+    description: "Update a draft or scheduled post's content, schedule, or media. New content with a facebook.com / fb.watch link is refused when the post targets Facebook without its own Facebook text (Graph 1609008), as in zernio_create_post.",
     inputSchema: z.object({
       postId: z.string().describe("The post ID to update"),
       content: z.string().optional().describe("Updated post content"),
@@ -150,6 +151,11 @@ export const postTools = [
       tags: z.array(z.string()).optional().describe("Updated tags"),
     }),
     handler: async (args: { postId: string; content?: string; mediaItems?: Array<{ type: string; url: string }>; scheduledFor?: string; tags?: string[] }) => {
+      // The update carries no platforms, so read the post's targets only when the new text has such a link.
+      if (args.content && FACEBOOK_LINK.test(args.content)) {
+        const current = (await zernioRequest("GET", `/v1/posts/${args.postId}`)) as { post?: { platforms?: Array<{ platform: string; customContent?: string }> } };
+        refuseFacebookLinks(args.content, current?.post?.platforms);
+      }
       return zernioRequest("PUT", `/v1/posts/${args.postId}`, {
         content: args.content,
         mediaItems: args.mediaItems,
