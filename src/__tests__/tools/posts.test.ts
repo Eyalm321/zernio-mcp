@@ -370,4 +370,29 @@ describe("postTools", () => {
       expect(mockRequest).toHaveBeenCalledTimes(3);
     });
   });
+  describe("zernio_update_post facebook links", () => {
+    const tool = postTools.find((t) => t.name === "zernio_update_post")!;
+    it("refuses a facebook.com link when the post targets Facebook with no Facebook text of its own", async () => {
+      mockRequest.mockResolvedValueOnce({ post: { platforms: [{ platform: "facebook", accountId: "a" }, { platform: "linkedin", accountId: "l" }] } });
+      await expect(tool.handler({ postId: "p1", content: "https://www.facebook.com/x/posts/1" })).rejects.toThrow(/1609008/);
+      expect(mockRequest).toHaveBeenCalledTimes(1);
+      expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/posts/p1");
+    });
+    it("refuses when the Facebook target's customContent is empty", async () => {
+      mockRequest.mockResolvedValueOnce({ post: { platforms: [{ platform: "facebook", accountId: "a", customContent: "" }] } });
+      await expect(tool.handler({ postId: "p1", content: "fb.watch/abc" })).rejects.toThrow(/1609008/);
+    });
+    it("updates when the post has no Facebook target or its Facebook text is its own", async () => {
+      mockRequest.mockResolvedValueOnce({ post: { platforms: [{ platform: "linkedin", accountId: "l" }] } });
+      await tool.handler({ postId: "p1", content: "https://facebook.com/x" });
+      mockRequest.mockResolvedValueOnce({ post: { platforms: [{ platform: "facebook", accountId: "a", customContent: "our news" }] } });
+      await tool.handler({ postId: "p2", content: "https://facebook.com/x" });
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/posts/p2", expect.objectContaining({ content: "https://facebook.com/x" }));
+    });
+    it("reads nothing extra when the new text has no such link", async () => {
+      await tool.handler({ postId: "p1", content: "plain text" });
+      expect(mockRequest).toHaveBeenCalledTimes(1);
+      expect(mockRequest).toHaveBeenCalledWith("PUT", "/v1/posts/p1", expect.objectContaining({ content: "plain text" }));
+    });
+  });
 });
