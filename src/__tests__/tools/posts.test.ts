@@ -134,6 +134,24 @@ describe("postTools", () => {
       mockRequest.mockResolvedValueOnce({});
       await expect(tool.handler({ postId: "nope" })).rejects.toThrow(/nope not found/);
     });
+    it("refuses a post whose text was not retained, before creating", async () => {
+      mockRequest.mockResolvedValueOnce({ post: {
+        contentNotRetained: true, title: null, content: null,
+        platforms: [{ platform: "instagram", accountId: "acc-ig", customContent: null }],
+      } });
+      await expect(tool.handler({ postId: "post-1" })).rejects.toThrow(/not retained/);
+      expect(mockRequest).toHaveBeenCalledTimes(1);
+    });
+    it("sends null text fields from the read as absent, not null", async () => {
+      mockRequest.mockResolvedValueOnce({ post: {
+        title: null, content: "hi",
+        platforms: [{ platform: "linkedin", accountId: "acc-li", customContent: null, customMedia: null, platformSpecificData: null }],
+      } });
+      await tool.handler({ postId: "post-1" });
+      const body = mockRequest.mock.calls[1][2] as Record<string, unknown>;
+      expect(JSON.stringify(body)).not.toContain("null");
+      expect(body).toMatchObject({ isDraft: true, content: "hi", platforms: [{ platform: "linkedin", accountId: "acc-li" }] });
+    });
   });
 
   describe("zernio_retry_post", () => {
