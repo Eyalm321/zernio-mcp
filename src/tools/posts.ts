@@ -349,6 +349,10 @@ export const postTools = [
     }),
     handler: async (args: { rows?: Array<Record<string, string | number | boolean>>; csvPath?: string; dryRun?: boolean }) => {
       if (!!args.rows === !!args.csvPath) throw new Error("Give exactly one of rows or csvPath");
+      // The file is uploaded as is: a wrong path must not send some other local file to Zernio.
+      if (args.csvPath && extname(args.csvPath).toLowerCase() !== ".csv") {
+        throw new Error(`csvPath must name a .csv file: ${args.csvPath}`);
+      }
       const csv = args.rows ? toCsv(args.rows) : readFileSync(args.csvPath!, "utf8");
       const records = args.rows
         ? args.rows.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, String(v)])))

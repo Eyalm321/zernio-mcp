@@ -285,6 +285,11 @@ describe("postTools", () => {
       await expect(tool.handler({ rows: [{ a: "1" }], csvPath: "/x.csv" })).rejects.toThrow(/exactly one/);
       await expect(tool.handler({ rows: [] })).rejects.toThrow(/No rows/);
     });
+    it("refuses a csvPath that is not a .csv file, before reading it", async () => {
+      await expect(tool.handler({ csvPath: "/home/u/.ssh/id_ed25519" })).rejects.toThrow(/\.csv file/);
+      await expect(tool.handler({ csvPath: "/tmp/dir/" })).rejects.toThrow(/\.csv file/);
+      expect(mockMultipart).not.toHaveBeenCalled();
+    });
   });
 
   describe("CSV helpers", () => {
