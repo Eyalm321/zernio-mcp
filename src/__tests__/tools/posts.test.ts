@@ -265,6 +265,14 @@ describe("postTools", () => {
       await expect(tool.handler({ csvPath: f })).rejects.toThrow(/Row 1: .*1609008/);
       expect(mockMultipart).not.toHaveBeenCalled();
     });
+    it("checks the post text when the custom_content_facebook column is empty", async () => {
+      const dir = mkdtempSync(join(tmpdir(), "zbulk-"));
+      const f = join(dir, "fb-empty.csv");
+      writeFileSync(f, "post_content,platforms,profiles,is_draft,custom_content_facebook\nhttps://facebook.com/x/posts/1,facebook,P,true,\n");
+      await expect(tool.handler({ csvPath: f })).rejects.toThrow(/Row 1: .*1609008/);
+      await expect(tool.handler({ rows: [{ post_content: "fb.watch/abc", platforms: "facebook", profiles: "P", is_draft: true, custom_content_facebook: "" }] })).rejects.toThrow(/1609008/);
+      expect(mockMultipart).not.toHaveBeenCalled();
+    });
     it("lets a facebook.com link through for other platforms or own Facebook text", async () => {
       await tool.handler({ rows: [
         { post_content: "https://facebook.com/x", platforms: "linkedin", profiles: "P", is_draft: true },
