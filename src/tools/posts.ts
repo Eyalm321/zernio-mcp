@@ -81,6 +81,26 @@ export function parseCsvRecords(text: string): Array<Record<string, string>> {
   return data.map((r) => Object.fromEntries(keys.map((k, i) => [k, r[i] ?? ""])));
 }
 
+// GET /v1/posts/{id} returns text fields as string | null; the create body takes string or nothing.
+type SourcePost = {
+  contentNotRetained?: boolean;
+  title?: string | null;
+  content?: string | null;
+  mediaItems?: unknown[];
+  platforms?: Array<{
+    platform: string;
+    accountId: string | { _id: string };
+    customContent?: string | null;
+    customMedia?: unknown[] | null;
+    platformSpecificData?: Record<string, unknown> | null;
+  }>;
+  tags?: string[];
+  hashtags?: string[];
+  mentions?: string[];
+  timezone?: string;
+  profileId?: string;
+};
+
 export const postTools = [
   {
     name: "zernio_list_posts",
@@ -210,12 +230,43 @@ export const postTools = [
   },
   {
     name: "zernio_duplicate_post",
-    description: "Duplicate an existing post to create a new draft with the same content.",
+    description:
+      "Duplicate an existing post as a new draft: same text, media, targets (with their custom text and media), tags and title; no schedule. A facebook.com / fb.watch link in the Facebook text is refused (Graph 1609008), as in zernio_create_post.",
     inputSchema: z.object({
       postId: z.string().describe("The post ID to duplicate"),
     }),
     handler: async (args: { postId: string }) => {
-      return zernioRequest("POST", `/v1/posts/${args.postId}/duplicate`);
+      // Zernio has no duplicate route (POST /v1/posts/{id}/duplicate answers endpoint_not_found), so read the
+      // post and create a draft from the fields a create request accepts.
+      const res = (await zernioRequest("GET", `/v1/posts/${args.postId}`)) as { post?: SourcePost };
+      const post = res?.post;
+      if (!post) throw new Error(`Post ${args.postId} not found`);
+      // A team that does not retain content gets title, content and every customContent back as null
+      // after publishing: a copy would be an empty draft.
+      if (post.contentNotRetained) {
+        throw new Error(`Post ${args.postId}'s text was not retained after publishing, so it cannot be duplicated`);
+      }
+      const platforms = (post.platforms ?? []).map((p) => ({
+        platform: p.platform,
+        accountId: typeof p.accountId === "object" && p.accountId !== null ? p.accountId._id : p.accountId,
+        customContent: p.customContent ?? undefined,
+        customMedia: p.customMedia ?? undefined,
+        platformSpecificData: p.platformSpecificData ?? undefined,
+      }));
+      const content = post.content ?? undefined;
+      refuseFacebookLinks(content, platforms);
+      return zernioRequest("POST", "/v1/posts", {
+        isDraft: true,
+        title: post.title ?? undefined,
+        content,
+        mediaItems: post.mediaItems,
+        platforms,
+        tags: post.tags,
+        hashtags: post.hashtags,
+        mentions: post.mentions,
+        timezone: post.timezone,
+        profileId: post.profileId,
+      });
     },
   },
   {

@@ -10,6 +10,7 @@
 ### Fixed
 - `zernio_bulk_upload_posts` works: it sent a JSON `{posts: [...]}` body, but `POST /v1/posts/bulk-upload` takes a CSV file (multipart/form-data), so it always failed. Its input changes to `rows` (one object per post, keys are the CSV columns: `post_content`, `platforms`, `profiles`, `schedule_time`, `tz`, `is_draft`, `custom_content_<platform>`, ...) or `csvPath` (a local CSV), plus `dryRun`. A facebook.com / fb.watch link in a row's Facebook text is refused before upload, as in `zernio_create_post`.
 - README lists all 276 tools once each (`zernio_upload_media_from_file` was missing, `zernio_get_webhook_logs` was listed twice, the WhatsApp Business count was short).
+- `zernio_duplicate_post` works: it called `POST /v1/posts/{id}/duplicate`, which Zernio does not have (`endpoint_not_found`), so it always failed. It now reads the post and creates a draft with the same text, media, targets (custom text and media kept), tags and title, without a schedule, and refuses a facebook.com link in the Facebook text like `zernio_create_post`.
 
 ## 2.5.0 (2026-11-23)
 
