@@ -133,7 +133,8 @@ describe("postTools", () => {
     });
     it("refuses a Facebook target whose text has a facebook.com link, before creating", async () => {
       mockRequest.mockResolvedValueOnce({ post: { content: "https://facebook.com/x/posts/1", platforms: [{ platform: "facebook", accountId: "a" }] } });
-      await expect(tool.handler({ postId: "post-1" })).rejects.toThrow(/1609008/);
+      // duplicate_post takes only postId: the message must point at the source post, not customContent.
+      await expect(tool.handler({ postId: "post-1" })).rejects.toThrow(/1609008.*source post's Facebook text/);
       expect(mockRequest).toHaveBeenCalledTimes(1);
     });
     it("fails clearly when the post is missing", async () => {
@@ -306,7 +307,7 @@ describe("postTools", () => {
         { post_content: "ok", platforms: "facebook", profiles: "P", is_draft: true },
         { post_content: "https://www.facebook.com/x/posts/1", platforms: "instagram, facebook", profiles: "P", is_draft: true },
       ] })).rejects.toThrow(/Row 2: .*1609008/);
-      await expect(tool.handler({ rows: [{ post_content: "x", custom_content_facebook: "fb.watch/a", platforms: "facebook", profiles: "P", is_draft: true }] })).rejects.toThrow(/1609008/);
+      await expect(tool.handler({ rows: [{ post_content: "x", custom_content_facebook: "fb.watch/a", platforms: "facebook", profiles: "P", is_draft: true }] })).rejects.toThrow(/1609008.*custom_content_facebook \(or post_content\)/);
       const dir = mkdtempSync(join(tmpdir(), "zbulk-"));
       const f = join(dir, "fb.csv");
       writeFileSync(f, 'post_content,platforms,profiles,is_draft\n"see https://facebook.com/a, now",facebook,P,true\n');

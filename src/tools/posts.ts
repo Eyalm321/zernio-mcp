@@ -257,7 +257,8 @@ export const postTools = [
         platformSpecificData: p.platformSpecificData ?? undefined,
       }));
       const content = post.content ?? undefined;
-      refuseFacebookLinks(content, platforms);
+      // The copy takes only postId, so the fix is on the source post.
+      refuseFacebookLinks(content, platforms, "Remove the link from the source post's Facebook text first");
       return zernioRequest("POST", "/v1/posts", {
         isDraft: true,
         title: post.title ?? undefined,
@@ -417,7 +418,11 @@ export const postTools = [
         const platforms = (row.platforms ?? "").toLowerCase().split(/[\s,;|]+/);
         if (!platforms.includes("facebook")) return;
         try {
-          refuseFacebookLinks(row.post_content || row.content, [{ platform: "facebook", customContent: row.custom_content_facebook }]);
+          refuseFacebookLinks(
+            row.post_content || row.content,
+            [{ platform: "facebook", customContent: row.custom_content_facebook }],
+            "Remove the link from the row's custom_content_facebook (or post_content)"
+          );
         } catch (e) {
           throw new Error(`Row ${i + 1}: ${(e as Error).message}`);
         }
