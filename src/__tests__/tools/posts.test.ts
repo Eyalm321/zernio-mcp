@@ -100,9 +100,57 @@ describe("postTools", () => {
   describe("zernio_duplicate_post", () => {
     const tool = postTools.find((t) => t.name === "zernio_duplicate_post")!;
     it("exists with description", () => { expect(tool).toBeDefined(); expect(tool.description).toBeTruthy(); });
-    it("calls zernioRequest correctly", async () => {
+    it("reads the post and creates a draft from it", async () => {
+      mockRequest.mockResolvedValueOnce({ post: {
+        _id: "post-1", status: "published", scheduledFor: "2026-01-01T00:00:00Z", title: "T", content: "Hello",
+        mediaItems: [{ type: "image", url: "https://x/i.png" }], tags: ["a"], timezone: "America/New_York", profileId: "prof-1",
+        platforms: [
+          { platform: "instagram", accountId: { _id: "acc-ig", username: "u" }, status: "published", platformPostId: "99", customContent: "IG text" },
+          { platform: "linkedin", accountId: "acc-li", customMedia: [{ type: "image", url: "https://x/l.png" }] },
+        ],
+      } });
       await tool.handler({ postId: "post-1" });
-      expect(mockRequest).toHaveBeenCalledWith("POST", "/v1/posts/post-1/duplicate");
+      expect(mockRequest).toHaveBeenNthCalledWith(1, "GET", "/v1/posts/post-1");
+      expect(mockRequest).toHaveBeenNthCalledWith(2, "POST", "/v1/posts", {
+        isDraft: true, title: "T", content: "Hello", mediaItems: [{ type: "image", url: "https://x/i.png" }],
+        platforms: [
+          { platform: "instagram", accountId: "acc-ig", customContent: "IG text", customMedia: undefined, platformSpecificData: undefined },
+          { platform: "linkedin", accountId: "acc-li", customContent: undefined, customMedia: [{ type: "image", url: "https://x/l.png" }], platformSpecificData: undefined },
+        ],
+        tags: ["a"], hashtags: undefined, mentions: undefined, timezone: "America/New_York", profileId: "prof-1",
+      });
+    });
+    it("never calls the missing duplicate route", async () => {
+      mockRequest.mockResolvedValueOnce({ post: { content: "x", platforms: [] } });
+      await tool.handler({ postId: "post-1" });
+      expect(mockRequest.mock.calls.some((c) => String(c[1]).endsWith("/duplicate"))).toBe(false);
+    });
+    it("refuses a Facebook target whose text has a facebook.com link, before creating", async () => {
+      mockRequest.mockResolvedValueOnce({ post: { content: "https://facebook.com/x/posts/1", platforms: [{ platform: "facebook", accountId: "a" }] } });
+      await expect(tool.handler({ postId: "post-1" })).rejects.toThrow(/1609008/);
+      expect(mockRequest).toHaveBeenCalledTimes(1);
+    });
+    it("fails clearly when the post is missing", async () => {
+      mockRequest.mockResolvedValueOnce({});
+      await expect(tool.handler({ postId: "nope" })).rejects.toThrow(/nope not found/);
+    });
+    it("refuses a post whose text was not retained, before creating", async () => {
+      mockRequest.mockResolvedValueOnce({ post: {
+        contentNotRetained: true, title: null, content: null,
+        platforms: [{ platform: "instagram", accountId: "acc-ig", customContent: null }],
+      } });
+      await expect(tool.handler({ postId: "post-1" })).rejects.toThrow(/not retained/);
+      expect(mockRequest).toHaveBeenCalledTimes(1);
+    });
+    it("sends null text fields from the read as absent, not null", async () => {
+      mockRequest.mockResolvedValueOnce({ post: {
+        title: null, content: "hi",
+        platforms: [{ platform: "linkedin", accountId: "acc-li", customContent: null, customMedia: null, platformSpecificData: null }],
+      } });
+      await tool.handler({ postId: "post-1" });
+      const body = mockRequest.mock.calls[1][2] as Record<string, unknown>;
+      expect(JSON.stringify(body)).not.toContain("null");
+      expect(body).toMatchObject({ isDraft: true, content: "hi", platforms: [{ platform: "linkedin", accountId: "acc-li" }] });
     });
   });
 

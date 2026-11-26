@@ -9,6 +9,7 @@
 
 ### Fixed
 - README lists all 276 tools once each (`zernio_upload_media_from_file` was missing, `zernio_get_webhook_logs` was listed twice, the WhatsApp Business count was short).
+- `zernio_duplicate_post` works: it called `POST /v1/posts/{id}/duplicate`, which Zernio does not have (`endpoint_not_found`), so it always failed. It now reads the post and creates a draft with the same text, media, targets (custom text and media kept), tags and title, without a schedule, and refuses a facebook.com link in the Facebook text like `zernio_create_post`.
 
 ## 2.5.0 (2026-11-23)
 
