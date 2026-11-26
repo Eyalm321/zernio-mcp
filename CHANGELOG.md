@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Maintenance
+- `npm run dev` builds with `tsc` and runs `dist/index.js` instead of `ts-node`, which needs the TypeScript JS API that TypeScript 7 no longer ships. `ts-node` leaves devDependencies. The published package is unchanged.
+
 ## 2.6.0 (2026-11-26)
 
 ### Changed
