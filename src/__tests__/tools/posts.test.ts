@@ -435,7 +435,11 @@ describe("postTools", () => {
     const tool = postTools.find((t) => t.name === "zernio_update_post")!;
     it("refuses a facebook.com link when the post targets Facebook with no Facebook text of its own", async () => {
       mockRequest.mockResolvedValueOnce({ post: { platforms: [{ platform: "facebook", accountId: "a" }, { platform: "linkedin", accountId: "l" }] } });
-      await expect(tool.handler({ postId: "p1", content: "https://www.facebook.com/x/posts/1" })).rejects.toThrow(/1609008/);
+      const err = await tool.handler({ postId: "p1", content: "https://www.facebook.com/x/posts/1" }).catch((e: Error) => e);
+      expect(String(err)).toMatch(/1609008/);
+      // update_post cannot set customContent, so the message must not tell the caller to.
+      expect(String(err)).toMatch(/Remove the link from content/);
+      expect(String(err)).not.toMatch(/customContent/);
       expect(mockRequest).toHaveBeenCalledTimes(1);
       expect(mockRequest).toHaveBeenCalledWith("GET", "/v1/posts/p1");
     });

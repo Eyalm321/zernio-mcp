@@ -25,7 +25,9 @@ const FACEBOOK_LINK = /\b(?:https?:\/\/)?(?:[\w-]+\.)*(?:facebook\.com|fb\.watch
 
 export function refuseFacebookLinks(
   content: string | undefined,
-  platforms: Array<{ platform: string; customContent?: string }> | undefined
+  platforms: Array<{ platform: string; customContent?: string }> | undefined,
+  // Callers that cannot set per-platform text name what the caller can change instead.
+  fix = "Remove the link from the Facebook text (customContent)"
 ): void {
   for (const p of platforms ?? []) {
     if (p.platform.toLowerCase() !== "facebook") continue;
@@ -33,7 +35,7 @@ export function refuseFacebookLinks(
     const text = p.customContent || content || "";
     if (FACEBOOK_LINK.test(text)) {
       throw new Error(
-        "Facebook refuses facebook.com links in a Page post (Graph 1609008) and has no way to reshare an existing Facebook post through the API. Remove the link from the Facebook text (customContent), or share it by hand in Facebook."
+        `Facebook refuses facebook.com links in a Page post (Graph 1609008) and has no way to reshare an existing Facebook post through the API. ${fix}, or share it by hand in Facebook.`
       );
     }
   }
@@ -198,7 +200,8 @@ export const postTools = [
       // The update carries no platforms, so read the post's targets only when the new text has such a link.
       if (args.content && FACEBOOK_LINK.test(args.content)) {
         const current = (await zernioRequest("GET", `/v1/posts/${args.postId}`)) as { post?: { platforms?: Array<{ platform: string; customContent?: string }> } };
-        refuseFacebookLinks(args.content, current?.post?.platforms);
+        // This tool sends no per-platform text, so the only fix it can offer is in content.
+        refuseFacebookLinks(args.content, current?.post?.platforms, "Remove the link from content");
       }
       return zernioRequest("PUT", `/v1/posts/${args.postId}`, {
         content: args.content,
