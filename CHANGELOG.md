@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.6.0 (2026-11-26)
 
 ### Changed
 - `zernio_update_post` refuses new content with a facebook.com / fb.watch link when the post targets Facebook without its own Facebook text (Graph 1609008), as `zernio_create_post` does. It reads the post's targets only when the new text has such a link.
